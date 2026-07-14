@@ -14,11 +14,11 @@ class DatabaseService {
   Future<Database> get database async {
     if (_database != null) return _database!;
 
-    _database = await _initDB("database.db");
+    _database = await initDB("database.db");
     return _database!;
   }
 
-  Future<Database> _initDB(String filePath) async {
+  Future<Database> initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
     return await openDatabase(
@@ -130,6 +130,15 @@ class DatabaseService {
       plant.toJson(),
       where: '${PlantFields.id} = ?',
       whereArgs: [plant.id],
+    );
+  }
+
+  Future<int> deletePlant(int id) async {
+    final db = await instance.database;
+    return await db.delete(
+      tablePlant,
+      where: "${PlantFields.id} = ?",
+      whereArgs: [id],
     );
   }
 

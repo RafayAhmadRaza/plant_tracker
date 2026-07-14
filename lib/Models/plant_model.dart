@@ -32,8 +32,8 @@ class Plant {
   static Plant fromJson(Map<String, Object?> json) => Plant(
     id: json[PlantFields.id] as int?,
     name: json[PlantFields.name] as String,
-    plantedDate: DateTime.parse([PlantFields.plantedDate] as String),
-    notes: json[PlantFields.notes] as String,
+    plantedDate: DateTime.parse(json[PlantFields.plantedDate] as String),
+    notes: json[PlantFields.notes] as String?,
   );
 
   Plant copy({int? id, String? name, DateTime? plantedDate, String? notes}) =>
