@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:plant_tracker/pages/add_plant_page.dart';
 import 'Models/plant_model.dart';
 import 'Service/DatabaseService.dart';
 
@@ -41,67 +42,73 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Plant Journal",
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text("Plant App", style: TextStyle(color: Colors.white)),
-          backgroundColor: Colors.green,
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            dbService.createPlant(plant);
-            refreshPlants();
-          },
-          child: const Icon(Icons.add),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Plant App", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (context) => const AddPlantPage()),
+          );
+          refreshPlants();
+        },
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: plants.length,
-                itemBuilder: (context, index) {
-                  final plant = plants[index];
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: plants.length,
+              itemBuilder: (context, index) {
+                final plant = plants[index];
 
-                  return Card(
-                    child: ListTile(
-                      title: Text(plant.id.toString() + " " + plant.name),
-                      subtitle: Text(plant.plantedDate.toString()),
-                      onTap: () async {
-                        dbService.deletePlant(plant.id!);
-                        refreshPlants();
-                      },
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
-                          IconButton(
-                            onPressed: () async {
-                              dbService.deletePlant(plant.id!);
-                              refreshPlants();
-                            },
-                            icon: Icon(Icons.delete),
-                          ),
-                        ],
-                      ),
+                return Card(
+                  child: ListTile(
+                    title: Text(plant.id.toString() + " " + plant.name),
+                    subtitle: Text(
+                      plant.plantedDate.toString() +
+                          "\n" +
+                          (plant.notes == null
+                              ? "No Notes"
+                              : plant.notes.toString()),
                     ),
-                  );
-                },
-              ),
+                    onTap: () async {
+                      dbService.deletePlant(plant.id!);
+                      refreshPlants();
+                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                        IconButton(
+                          onPressed: () async {
+                            await dbService.deletePlant(plant.id!);
+                            refreshPlants();
+                          },
+                          icon: Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.show_chart_sharp),
-              label: "Graph",
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart_sharp),
+            label: "Graph",
+          ),
+        ],
       ),
     );
   }
