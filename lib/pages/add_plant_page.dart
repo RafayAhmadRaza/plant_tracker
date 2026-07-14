@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
 import 'package:date_field/date_field.dart';
@@ -17,7 +17,7 @@ class _AddPlantPageState extends State<AddPlantPage> {
   final _formkey = GlobalKey<FormState>();
   String name = '';
   DateTime datePlanted = DateTime.now();
-  String Note = "";
+  String note = "";
   TextEditingController nameController = TextEditingController();
   TextEditingController noteController = TextEditingController();
 
