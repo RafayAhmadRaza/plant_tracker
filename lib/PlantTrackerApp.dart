@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:plant_tracker/Models/wateringrecord.dart';
 import 'package:plant_tracker/pages/add_plant_page.dart';
 import 'Models/plant_model.dart';
 import 'Service/DatabaseService.dart';
@@ -14,8 +15,10 @@ class PlantTrackerApp extends StatefulWidget {
 class _PlantTrackerAppState extends State<PlantTrackerApp> {
   DatabaseService dbService = DatabaseService.instance;
   late List<Plant> plants = [];
+  Map<int?, bool> wateringStatus = {};
   Plant plant = Plant(name: "Tomato", plantedDate: DateTime.now());
   bool isLoading = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -29,7 +32,19 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
       isLoading = true;
     });
     this.plants = await dbService.readAllPlants();
+    wateringStatus.clear();
+    List<Wateringrecord> wrlists_temp = await dbService.readAllwr();
+    final today = DateTime.now();
+    for (final record in wrlists_temp) {
+      final wateredToday =
+          record.wateredAt.year == today.year &&
+          record.wateredAt.month == today.month &&
+          record.wateredAt.day == today.day;
 
+      wateringStatus[record.plantId] = wateredToday;
+    }
+
+    debugPrint(wateringStatus.entries.toString());
     setState(() {
       isLoading = false;
     });
@@ -77,20 +92,52 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
                               ? "No Notes"
                               : plant.notes.toString()),
                     ),
-                    onTap: () async {
-                      dbService.deletePlant(plant.id!);
-                      refreshPlants();
-                    },
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
                         IconButton(
                           onPressed: () async {
+                            List<Wateringrecord> wrlist = await dbService
+                                .readwateringRecordsForPlant(plant.id!);
+
+                            if (wrlist.isEmpty ||
+                                (wrlist.last.wateredAt.day !=
+                                    DateTime.now().day) ||
+                                (wrlist.last.wateredAt.month !=
+                                    DateTime.now().month) ||
+                                wrlist.last.wateredAt.year !=
+                                    DateTime.now().year) {
+                              final wr = Wateringrecord(
+                                plantId: plant.id!,
+                                wateredAt: DateTime.now(),
+                              );
+                              await dbService.createwateringRecord(wr);
+                              refreshPlants();
+                            } else {
+                              await dbService.deletewr(
+                                plant.id!,
+                                wrlist.last.id!,
+                              );
+                              refreshPlants();
+                            }
+                          },
+                          icon: Icon(Icons.water_drop_sharp),
+                          color: wateringStatus[plant.id] == true
+                              ? Colors.blue
+                              : Colors.grey,
+                        ),
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.eco, color: Colors.green),
+                        ),
+
+                        IconButton(
+                          onPressed: () async {
                             await dbService.deletePlant(plant.id!);
                             refreshPlants();
                           },
-                          icon: Icon(Icons.delete),
+                          icon: Icon(Icons.delete, color: Colors.red),
                         ),
                       ],
                     ),

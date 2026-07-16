@@ -228,6 +228,16 @@ class DatabaseService {
     return wr.copy(id: id);
   }
 
+  Future<int> deletewr(int plantid, int wateringRecordid) async {
+    final db = await instance.database;
+    return await db.delete(
+      wateringrecordTable,
+      where:
+          "${wateringrecordFields.plantId} = ? AND ${wateringrecordFields.id} = ?",
+      whereArgs: [plantid, wateringRecordid],
+    );
+  }
+
   Future<Wateringrecord> readwr(int id) async {
     final db = await instance.database;
     final maps = await db.query(
@@ -258,6 +268,23 @@ class DatabaseService {
       whereArgs: [plantId],
     );
     return maps.map((json) => Wateringrecord.fromJson(json)).toList();
+  }
+
+  Future<bool> isPlantwatered(int? plantId) async {
+    final result = await readwateringRecordsForPlant(plantId!);
+
+    if (result.isEmpty) {
+      return false;
+    }
+
+    final lastest = result.first;
+
+    if ((lastest.wateredAt.day == DateTime.now().day) &&
+        (lastest.wateredAt.month == DateTime.now().month)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   Future close() async {

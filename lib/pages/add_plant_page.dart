@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:plant_tracker/Models/growth_record.dart';
 
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
@@ -18,6 +20,7 @@ class _AddPlantPageState extends State<AddPlantPage> {
   String name = '';
   DateTime datePlanted = DateTime.now();
   String note = "";
+  double? initialHeight = 0.0;
   TextEditingController nameController = TextEditingController();
   TextEditingController noteController = TextEditingController();
 
@@ -78,6 +81,19 @@ class _AddPlantPageState extends State<AddPlantPage> {
 
             const SizedBox(height: 12),
 
+            TextField(
+              decoration: InputDecoration(labelText: "Enter your number"),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+              ],
+              onChanged: (value) {
+                initialHeight = double.tryParse(value);
+              },
+            ),
+
+            const SizedBox(height: 12),
+
             TextFormField(
               decoration: InputDecoration(
                 labelText: "Notes",
@@ -89,6 +105,8 @@ class _AddPlantPageState extends State<AddPlantPage> {
               controller: noteController,
             ),
 
+            const SizedBox(height: 12),
+
             ElevatedButton(
               onPressed: () async {
                 final plant = Plant(
@@ -98,7 +116,13 @@ class _AddPlantPageState extends State<AddPlantPage> {
                       ? null
                       : noteController.text,
                 );
-                await dbService.createPlant(plant);
+                final plantCopy = await dbService.createPlant(plant);
+                GrowthRecord gr = GrowthRecord(
+                  plantId: plantCopy.id!,
+                  date: datePlanted,
+                  height: initialHeight ?? 0.0,
+                );
+                await dbService.createGrowthRecord(gr);
 
                 Navigator.pop(context);
               },
