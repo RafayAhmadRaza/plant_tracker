@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
+import 'package:plant_tracker/pages/add_new_growth_record.dart';
 import 'package:plant_tracker/pages/add_plant_page.dart';
 import 'Models/plant_model.dart';
 import 'Service/DatabaseService.dart';
@@ -128,7 +129,16 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
                               : Colors.grey,
                         ),
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AddNewGrowthRecord(plantId: plant.id!),
+                              ),
+                            );
+                            refreshPlants();
+                          },
                           icon: Icon(Icons.eco, color: Colors.green),
                         ),
 

@@ -15,7 +15,7 @@ class AddPlantPage extends StatefulWidget {
 
 class _AddPlantPageState extends State<AddPlantPage> {
   DatabaseService dbService = DatabaseService.instance;
-
+  Set<String> _selected = {'CM'};
   final _formkey = GlobalKey<FormState>();
   String name = '';
   DateTime datePlanted = DateTime.now();
@@ -36,6 +36,12 @@ class _AddPlantPageState extends State<AddPlantPage> {
       return "Enter Name Please";
     }
     return null;
+  }
+
+  void updateSelected(Set<String> newSelection) {
+    setState(() {
+      _selected = newSelection;
+    });
   }
 
   @override
@@ -82,7 +88,9 @@ class _AddPlantPageState extends State<AddPlantPage> {
             const SizedBox(height: 12),
 
             TextField(
-              decoration: InputDecoration(labelText: "Enter your number"),
+              decoration: InputDecoration(
+                labelText: "Enter Intial Growth Height",
+              ),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
@@ -90,6 +98,17 @@ class _AddPlantPageState extends State<AddPlantPage> {
               onChanged: (value) {
                 initialHeight = double.tryParse(value);
               },
+            ),
+
+            const SizedBox(height: 12),
+
+            SegmentedButton(
+              segments: <ButtonSegment<String>>[
+                ButtonSegment<String>(value: "CM", label: Text("CM")),
+                ButtonSegment<String>(value: "Inches", label: Text("IN")),
+              ],
+              selected: _selected,
+              onSelectionChanged: updateSelected,
             ),
 
             const SizedBox(height: 12),
