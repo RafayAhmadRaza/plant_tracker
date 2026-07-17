@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
 import 'package:plant_tracker/pages/add_new_growth_record.dart';
 import 'package:plant_tracker/pages/add_plant_page.dart';
@@ -32,6 +33,7 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
     setState(() {
       isLoading = true;
     });
+
     this.plants = await dbService.readAllPlants();
     wateringStatus.clear();
     List<Wateringrecord> wrlists_temp = await dbService.readAllwr();
@@ -151,6 +153,14 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
                         ),
                       ],
                     ),
+                    onTap: () async {
+                      final List<GrowthRecord> records = await dbService
+                          .readGrowthRecordsForPlant(plant.id!);
+
+                      for (final record in records) {
+                        print(record.height);
+                      }
+                    },
                   ),
                 );
               },

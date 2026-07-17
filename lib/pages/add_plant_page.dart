@@ -44,6 +44,10 @@ class _AddPlantPageState extends State<AddPlantPage> {
     });
   }
 
+  double convertTocm(double? valueInches) {
+    return valueInches! * 2.54;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,7 +100,17 @@ class _AddPlantPageState extends State<AddPlantPage> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               onChanged: (value) {
-                initialHeight = double.tryParse(value);
+                final parsedValue = double.tryParse(value);
+                if (parsedValue == null) {
+                  return;
+                }
+
+                if (_selected.first == 'Inches') {
+                  final convertedValue = convertTocm(parsedValue);
+                  initialHeight = convertedValue;
+                } else {
+                  initialHeight = parsedValue;
+                }
               },
             ),
 

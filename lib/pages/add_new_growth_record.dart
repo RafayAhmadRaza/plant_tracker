@@ -24,6 +24,10 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
     });
   }
 
+  double convertTocm(double? valueInches) {
+    return valueInches! * 2.54;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +49,17 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               onChanged: (value) {
-                growthHeight = double.tryParse(value);
+                final parsedValue = double.tryParse(value);
+                if (parsedValue == null) {
+                  return;
+                }
+
+                if (_selected.first == 'Inches') {
+                  final convertedValue = convertTocm(parsedValue);
+                  growthHeight = convertedValue;
+                } else {
+                  growthHeight = parsedValue;
+                }
               },
             ),
 
@@ -70,6 +84,7 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
                   height: growthHeight ?? 0.0,
                 );
                 await dbService.createGrowthRecord(gr);
+                debugPrint(dbService.readAllGR().toString());
 
                 Navigator.pop(context);
               },
