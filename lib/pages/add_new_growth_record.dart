@@ -80,10 +80,38 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
                   date: DateTime.now(),
                   height: growthHeight ?? 0.0,
                 );
-                await dbService.createGrowthRecord(gr);
-                debugPrint(dbService.readAllGR().toString());
 
-                Navigator.pop(context);
+                List<GrowthRecord> growthrecord = await dbService
+                    .readGrowthRecordsForPlant(widget.plantId);
+                GrowthRecord? todayRecord;
+
+                for (final r in growthrecord) {
+                  if (r.date.year == gr.date.year &&
+                      r.date.month == gr.date.month &&
+                      r.date.day == gr.date.day) {
+                    todayRecord = r;
+                    break;
+                  }
+                }
+
+                if (todayRecord == null) {
+                  await dbService.createGrowthRecord(gr);
+                  debugPrint("created entry");
+                } else {
+                  final UpdateRecord = GrowthRecord(
+                    id: todayRecord!.id,
+                    plantId: todayRecord!.plantId,
+                    date: todayRecord!.date,
+                    height: gr.height,
+                  );
+                  final rowsaffected = await dbService.updateGrowthRecord(
+                    UpdateRecord,
+                  );
+                  debugPrint("updated existing entry");
+                  debugPrint("updateGrowthRecord affected $rowsaffected rows");
+                }
+
+                // Navigator.pop(context);
               },
               child: Icon(Icons.save),
             ),

@@ -149,6 +149,17 @@ class DatabaseService {
     return gr.copy(id: id);
   }
 
+  Future<int> updateGrowthRecord(GrowthRecord growthRecord) async {
+    final db = await instance.database;
+    return db.update(
+      growthTable,
+      growthRecord.toJson(),
+      where:
+          '${GrowthRecordFields.id} = ? AND ${GrowthRecordFields.plantId} = ?',
+      whereArgs: [growthRecord.id, growthRecord.plantId],
+    );
+  }
+
   Future<GrowthRecord> readGrowthRecord(int id) async {
     final db = await instance.database;
     final maps = await db.query(

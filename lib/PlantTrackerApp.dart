@@ -12,9 +12,13 @@ class PlantTrackerApp extends StatefulWidget {
 
 class _PlantTrackerAppState extends State<PlantTrackerApp> {
   int myIndex = 0;
+  final graphPageKey = GlobalKey<GraphPageState>();
 
-  List<Widget> widgetList = [HomePage(), GraphPage()];
-
+  late final List<Widget> widgetList = [
+    HomePage(),
+    GraphPage(key: graphPageKey),
+  ];
+  static const graphPageIndex = 1;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,6 +28,11 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           setState(() {
             myIndex = index;
           });
+          if (index == graphPageIndex) {
+            graphPageKey.currentState?.loadPlants();
+            graphPageKey.currentState?.clear();
+            debugPrint("Refreshing Page");
+          }
         },
         showUnselectedLabels: false,
         type: BottomNavigationBarType.shifting,
