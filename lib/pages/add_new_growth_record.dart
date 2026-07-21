@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
 
@@ -41,9 +40,7 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
           children: [
             SizedBox(height: 12),
             TextField(
-              decoration: InputDecoration(
-                labelText: "Enter Intial Growth Height",
-              ),
+              decoration: InputDecoration(labelText: "Enter Growth Height"),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
