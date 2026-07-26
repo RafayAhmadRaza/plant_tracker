@@ -4,6 +4,7 @@ import 'package:plant_tracker/Service/DatabaseService.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
 import 'add_plant_page.dart';
 import 'add_new_growth_record.dart';
+import 'package:plant_tracker/Service/notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -150,7 +151,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    onTap: () async {
+                    onTap: () {
+                      NotificationService().showNotification(
+                        title: plant.name,
+                        body: plant.notes!,
+                      );
                       debugPrint("Print Nothing");
                     },
                   ),

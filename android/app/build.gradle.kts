@@ -3,8 +3,9 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-}
 
+
+}
 android {
     namespace = "com.example.plant_tracker"
     compileSdk = flutter.compileSdkVersion
@@ -40,11 +41,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
-plugins {
-    ...
-    id("com.android.application") version "8.11.1" apply false
-    ...
-}
+
 }
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")

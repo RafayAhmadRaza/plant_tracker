@@ -6,7 +6,7 @@ import 'PlantTrackerApp.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.initDB("PlantsDatabase.db");
-  await NotificationService().initalize();
+  await NotificationService().initialize();
 
   runApp(const MaterialApp(home: PlantTrackerApp()));
 }
