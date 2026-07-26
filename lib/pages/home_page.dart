@@ -23,7 +23,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    NotificationService().scheduleNotification(
+      title: "Planty Remainder!",
+      body: "Don't forget to check your plants. They might be thirsty! 💧!",
+      hour: 6,
+      minute: 0,
+    );
     refreshPlants();
   }
 
@@ -152,10 +157,6 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     onTap: () {
-                      NotificationService().showNotification(
-                        title: plant.name,
-                        body: plant.notes!,
-                      );
                       debugPrint("Print Nothing");
                     },
                   ),
