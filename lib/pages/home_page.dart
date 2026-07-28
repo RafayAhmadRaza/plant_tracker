@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
+import 'package:plant_tracker/pages/camera_page.dart';
 import 'add_plant_page.dart';
 import 'add_new_growth_record.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
@@ -145,6 +146,18 @@ class _HomePageState extends State<HomePage> {
                             refreshPlants();
                           },
                           icon: Icon(Icons.eco, color: Colors.green),
+                        ),
+                        IconButton(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CameraPage(plantId: plant.id!),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.camera_alt),
                         ),
 
                         IconButton(
