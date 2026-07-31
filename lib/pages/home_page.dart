@@ -3,6 +3,7 @@ import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
 import 'package:plant_tracker/pages/camera_page.dart';
+import 'package:plant_tracker/pages/edit_plant.dart';
 import 'add_plant_page.dart';
 import 'add_new_growth_record.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
@@ -102,7 +103,19 @@ class _HomePageState extends State<HomePage> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
+                        IconButton(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute<void>(
+                                builder: (context) =>
+                                    EditPlant(plantID: plant.id!),
+                              ),
+                            );
+                            refreshPlants();
+                          },
+                          icon: Icon(Icons.edit),
+                        ),
                         IconButton(
                           onPressed: () async {
                             List<Wateringrecord> wrlist = await dbService
