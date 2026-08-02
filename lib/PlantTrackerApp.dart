@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:plant_tracker/pages/graph_page.dart';
 import 'package:plant_tracker/pages/home_page.dart';
+import 'package:plant_tracker/pages/montage_plant_picture_page.dart';
 
 class PlantTrackerApp extends StatefulWidget {
   const PlantTrackerApp({super.key});
@@ -17,6 +18,7 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
   late final List<Widget> widgetList = [
     HomePage(),
     GraphPage(key: graphPageKey),
+    MontagePlantPicturePage(),
   ];
   static const graphPageIndex = 1;
   @override
@@ -31,7 +33,6 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           if (index == graphPageIndex) {
             graphPageKey.currentState?.loadPlants();
             graphPageKey.currentState?.clear();
-            debugPrint("Refreshing Page");
           }
         },
         showUnselectedLabels: false,
@@ -46,6 +47,16 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           BottomNavigationBarItem(
             icon: Icon(Icons.show_chart_sharp),
             label: "Graph",
+            backgroundColor: Colors.green,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt_sharp),
+            label: "Montage Maker",
+            backgroundColor: Colors.green,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Settings",
             backgroundColor: Colors.green,
           ),
         ],

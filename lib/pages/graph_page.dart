@@ -99,6 +99,18 @@ class GraphPageState extends State<GraphPage> {
     }
   }
 
+  double average_heights(List<double> growthHeights) {
+    final totalgrowths = growthHeights.length;
+
+    double sum = 0.0;
+
+    for (int i = 0; i < totalgrowths; i++) {
+      sum += growthHeights[i];
+    }
+
+    return sum / totalgrowths;
+  }
+
   DropdownMenuItem<int> buildMenuItem(Plant plant) => DropdownMenuItem(
     value: plant.id,
     child: Text(
@@ -139,14 +151,11 @@ class GraphPageState extends State<GraphPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                debugPrint("Holy");
                 await loadSpecificRecords(selected_plant);
 
                 if (growthList.isEmpty) {
-                  debugPrint("No Records");
                   return;
                 }
-                debugPrint("First " + growthHeights.toString());
                 getHeights(growthList);
 
                 debugPrint(growthHeights.toString());
@@ -222,6 +231,8 @@ class GraphPageState extends State<GraphPage> {
                   curve: Curves.linear,
                 ),
               ),
+              Text("Average Growth Of ${selected_plant}"),
+              Text("${average_heights(growthHeights)}"),
             ],
           ],
         ),

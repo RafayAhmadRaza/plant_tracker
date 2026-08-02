@@ -2,16 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:plant_tracker/Models/growth_record.dart';
-
-import 'package:plant_tracker/Models/plant_model.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
-import 'package:date_field/date_field.dart';
 
 class EditPlant extends StatefulWidget {
-  int plantID;
+  final int plantID;
   EditPlant({super.key, required this.plantID});
 
   @override
@@ -22,7 +16,6 @@ class EditPlantState extends State<EditPlant> {
   DatabaseService dbService = DatabaseService.instance;
   Plant? plant;
   GrowthRecord? gr;
-  Set<String> _selected = {'CM'};
   final _formkey = GlobalKey<FormState>();
   String name = '';
   String note = "";
@@ -120,7 +113,7 @@ class EditPlantState extends State<EditPlant> {
                       ? "null"
                       : noteController.text,
                 );
-                final plantCopy = await dbService.updatePlant(edit_plant);
+                await dbService.updatePlant(edit_plant);
 
                 GrowthRecord edit_gr = GrowthRecord(
                   plantId: edit_plant.id!,

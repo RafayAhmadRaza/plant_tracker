@@ -98,14 +98,14 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
                   await dbService.createGrowthRecord(gr);
                   debugPrint("created entry");
                 } else {
-                  final UpdateRecord = GrowthRecord(
-                    id: todayRecord!.id,
-                    plantId: todayRecord!.plantId,
-                    date: todayRecord!.date,
+                  final updateRecord = GrowthRecord(
+                    id: todayRecord.id,
+                    plantId: todayRecord.plantId,
+                    date: todayRecord.date,
                     height: gr.height,
                   );
                   final rowsaffected = await dbService.updateGrowthRecord(
-                    UpdateRecord,
+                    updateRecord,
                   );
                   debugPrint("updated existing entry");
                   debugPrint("updateGrowthRecord affected $rowsaffected rows");
