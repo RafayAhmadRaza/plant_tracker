@@ -14,13 +14,16 @@ class PlantTrackerApp extends StatefulWidget {
 class _PlantTrackerAppState extends State<PlantTrackerApp> {
   int myIndex = 0;
   final graphPageKey = GlobalKey<GraphPageState>();
+  final MontagePlantPicturePageKey = GlobalKey<MontagePlantPicturePageState>();
 
   late final List<Widget> widgetList = [
     HomePage(),
     GraphPage(key: graphPageKey),
-    MontagePlantPicturePage(),
+    MontagePlantPicturePage(key: MontagePlantPicturePageKey),
   ];
   static const graphPageIndex = 1;
+  static const MontagePageIndex = 2;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,6 +36,11 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           if (index == graphPageIndex) {
             graphPageKey.currentState?.loadPlants();
             graphPageKey.currentState?.clear();
+          }
+          if (index == MontagePageIndex) {
+            MontagePlantPicturePageKey.currentState?.stopSlideshow();
+            MontagePlantPicturePageKey.currentState?.clear();
+            MontagePlantPicturePageKey.currentState?.loadPlants();
           }
         },
         showUnselectedLabels: false,

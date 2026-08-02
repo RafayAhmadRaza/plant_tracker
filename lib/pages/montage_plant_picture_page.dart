@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,15 +11,28 @@ class MontagePlantPicturePage extends StatefulWidget {
 
   @override
   State<MontagePlantPicturePage> createState() =>
-      _MontagePlantPicturePageState();
+      MontagePlantPicturePageState();
 }
 
-class _MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
+class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   DatabaseService dbService = DatabaseService.instance;
   List<String> imgPathList = [];
   int selected_plant = 0;
   List<Photo> photos = [];
   List<Plant> plants = [];
+  int currentImageIndex = 0;
+  bool isTimerRunning = false;
+  Timer? t;
+  void clear() {
+    photos.clear();
+    imgPathList.clear();
+  }
+
+  void stopSlideshow() {
+    t?.cancel();
+    t = null;
+    isTimerRunning = false;
+  }
 
   void loadPlants() async {
     final loadedplants = await dbService.readAllPlants();
@@ -36,12 +50,20 @@ class _MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
     loadPlants();
   }
 
-  void load_photos_path(int id) async {
+  Future<void> load_photos_path(int id) async {
+    imgPathList.clear();
+    photos.clear();
     photos = await dbService.readPhotosForPlant(id);
 
-    for (Photo photo in photos) {
-      imgPathList.add(photo.imagePath);
+    if (photos.isEmpty) {
+      return;
     }
+    for (Photo photo in photos) {
+      setState(() {
+        imgPathList.add(photo.imagePath);
+      });
+    }
+    debugPrint("image loaded");
   }
 
   DropdownMenuItem<int> buildMenuItem(Plant plant) => DropdownMenuItem(
@@ -75,9 +97,35 @@ class _MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
             SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
-                load_photos_path(selected_plant);
+                debugPrint("Button Pressed");
+
+                await load_photos_path(selected_plant);
+
+                debugPrint("Loading Done");
+
                 if (imgPathList.isEmpty) {
                   return;
+                }
+                if (isTimerRunning) {
+                  return;
+                } else {
+                  setState(() {
+                    isTimerRunning = true;
+                  });
+                  t = Timer.periodic(Duration(milliseconds: 500), (timer) {
+                    if (currentImageIndex < imgPathList.length) {
+                      setState(() {
+                        currentImageIndex++;
+                      });
+                    }
+
+                    if (currentImageIndex == imgPathList.length) {
+                      setState(() {
+                        currentImageIndex = 0;
+                      });
+                    }
+                    debugPrint(currentImageIndex.toString());
+                  });
                 }
               },
               child: Text("Generate Montage"),
@@ -87,7 +135,7 @@ class _MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
               SizedBox(
                 height: 300,
                 width: 300,
-                child: Image.file(File(imgPathList.first)),
+                child: Image.file(File(imgPathList[currentImageIndex])),
               ),
             ],
           ],
