@@ -17,18 +17,23 @@ class MontagePlantPicturePage extends StatefulWidget {
 class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   DatabaseService dbService = DatabaseService.instance;
   List<String> imgPathList = [];
-  int selected_plant = 0;
+  int selectedPlant = 0;
   List<Photo> photos = [];
   List<Plant> plants = [];
   int currentImageIndex = 0;
   bool isTimerRunning = false;
   Timer? t;
   void clear() {
+    currentImageIndex = 0;
     photos.clear();
     imgPathList.clear();
+    stopSlideshow();
+
+    setState(() {});
   }
 
   void stopSlideshow() {
+    currentImageIndex = 0;
     t?.cancel();
     t = null;
     isTimerRunning = false;
@@ -39,7 +44,7 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
 
     setState(() {
       plants = loadedplants;
-      selected_plant = loadedplants.first.id!;
+      selectedPlant = loadedplants.first.id!;
     });
   }
 
@@ -87,10 +92,10 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
             SizedBox(height: 5),
             DropdownButton(
               items: plants.map(buildMenuItem).toList(),
-              value: selected_plant,
+              value: selectedPlant,
               onChanged: (value) {
                 setState(() {
-                  selected_plant = value!;
+                  selectedPlant = value!;
                 });
               },
             ),
@@ -99,7 +104,7 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
               onPressed: () async {
                 debugPrint("Button Pressed");
 
-                await load_photos_path(selected_plant);
+                await load_photos_path(selectedPlant);
 
                 debugPrint("Loading Done");
 
@@ -112,7 +117,7 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                   setState(() {
                     isTimerRunning = true;
                   });
-                  t = Timer.periodic(Duration(milliseconds: 500), (timer) {
+                  t = Timer.periodic(Duration(milliseconds: 1000), (timer) {
                     if (currentImageIndex < imgPathList.length) {
                       setState(() {
                         currentImageIndex++;
@@ -132,12 +137,44 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
             ),
             SizedBox(height: 12),
             if (imgPathList.isNotEmpty) ...[
-              SizedBox(
-                height: 300,
-                width: 300,
-                child: Image.file(File(imgPathList[currentImageIndex])),
+              Stack(
+                children: [
+                  SizedBox(
+                    height: 300,
+                    width: 300,
+                    child: Image.file(File(imgPathList[currentImageIndex])),
+                  ),
+                  SizedBox(
+                    height: 300,
+                    width: 300,
+                    child: Text(
+                      (photos[currentImageIndex].takenAt.day.toString() +
+                          "-" +
+                          photos[currentImageIndex].takenAt.month.toString() +
+                          "-" +
+                          photos[currentImageIndex].takenAt.year.toString()),
+                      style: TextStyle(color: Color(0xFFD7CBB2)),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(onPressed: () {}, child: Text("Save")),
+                  SizedBox(width: 100),
+                  ElevatedButton(
+                    onPressed: () {
+                      clear();
+                    },
+                    child: Text("Clear"),
+                  ),
+                ],
               ),
             ],
+            if (imgPathList.isEmpty) ...[Text("Montage will appear here")],
           ],
         ),
       ),
