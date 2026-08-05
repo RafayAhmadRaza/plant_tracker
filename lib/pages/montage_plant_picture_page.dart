@@ -142,7 +142,10 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                   SizedBox(
                     height: 300,
                     width: 300,
-                    child: Image.file(File(imgPathList[currentImageIndex])),
+                    child: Image(
+                      image: FileImage(File(imgPathList[currentImageIndex])),
+                      gaplessPlayback: true,
+                    ),
                   ),
                   SizedBox(
                     height: 300,
