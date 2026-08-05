@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:plant_tracker/pages/SettingsPage.dart';
 import 'package:plant_tracker/pages/graph_page.dart';
 import 'package:plant_tracker/pages/home_page.dart';
 import 'package:plant_tracker/pages/montage_plant_picture_page.dart';
@@ -20,9 +21,13 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
     HomePage(),
     GraphPage(key: graphPageKey),
     MontagePlantPicturePage(key: MontagePlantPicturePageKey),
+    Settings_Page(),
   ];
   static const graphPageIndex = 1;
   static const MontagePageIndex = 2;
+  static const Settings = 3;
+
+  static const homepageindex = 0;
 
   @override
   Widget build(BuildContext context) {

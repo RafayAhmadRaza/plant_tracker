@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plant_tracker/Models/colors_storage.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
@@ -80,7 +81,8 @@ class _HomePageState extends State<HomePage> {
         },
         child: const Icon(Icons.add),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniCenterDocked,
 
       body: Column(
         children: [
@@ -91,100 +93,124 @@ class _HomePageState extends State<HomePage> {
                 final plant = plants[index];
 
                 return Card(
-                  child: ListTile(
-                    title: Text(plant.id.toString() + " " + plant.name),
-                    subtitle: Text(
-                      plant.plantedDate.toString() +
-                          "\n" +
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          plant.name,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: ColorsStorage.name_whimsy_color,
+                          ),
+                        ),
+                        Text(
+                          (plant.plantedDate.day.toString() +
+                              "-" +
+                              plant.plantedDate.month.toString() +
+                              "-" +
+                              plant.plantedDate.year.toString()),
+                          style: TextStyle(
+                            color: ColorsStorage.sub_title_whimsy_color,
+                          ),
+                        ),
+                        Text(
                           (plant.notes == null
                               ? "No Notes"
                               : plant.notes.toString()),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                builder: (context) =>
-                                    EditPlant(plantID: plant.id!),
-                              ),
-                            );
-                            refreshPlants();
-                          },
-                          icon: Icon(Icons.edit),
+                          style: TextStyle(
+                            color: ColorsStorage.sub_title_whimsy_color,
+                          ),
                         ),
-                        IconButton(
-                          onPressed: () async {
-                            List<Wateringrecord> wrlist = await dbService
-                                .readwateringRecordsForPlant(plant.id!);
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                      builder: (context) =>
+                                          EditPlant(plantID: plant.id!),
+                                    ),
+                                  );
+                                  refreshPlants();
+                                },
+                                icon: Icon(Icons.edit),
+                              ),
+                              IconButton(
+                                onPressed: () async {
+                                  List<Wateringrecord> wrlist = await dbService
+                                      .readwateringRecordsForPlant(plant.id!);
 
-                            if (wrlist.isEmpty ||
-                                (wrlist.last.wateredAt.day !=
-                                    DateTime.now().day) ||
-                                (wrlist.last.wateredAt.month !=
-                                    DateTime.now().month) ||
-                                wrlist.last.wateredAt.year !=
-                                    DateTime.now().year) {
-                              final wr = Wateringrecord(
-                                plantId: plant.id!,
-                                wateredAt: DateTime.now(),
-                              );
-                              await dbService.createwateringRecord(wr);
-                              refreshPlants();
-                            } else {
-                              await dbService.deletewr(
-                                plant.id!,
-                                wrlist.last.id!,
-                              );
-                              refreshPlants();
-                            }
-                          },
-                          icon: Icon(Icons.water_drop_sharp),
-                          color: wateringStatus[plant.id] == true
-                              ? Colors.blue
-                              : Colors.grey,
-                        ),
-                        IconButton(
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AddNewGrowthRecord(plantId: plant.id!),
+                                  if (wrlist.isEmpty ||
+                                      (wrlist.last.wateredAt.day !=
+                                          DateTime.now().day) ||
+                                      (wrlist.last.wateredAt.month !=
+                                          DateTime.now().month) ||
+                                      wrlist.last.wateredAt.year !=
+                                          DateTime.now().year) {
+                                    final wr = Wateringrecord(
+                                      plantId: plant.id!,
+                                      wateredAt: DateTime.now(),
+                                    );
+                                    await dbService.createwateringRecord(wr);
+                                    refreshPlants();
+                                  } else {
+                                    await dbService.deletewr(
+                                      plant.id!,
+                                      wrlist.last.id!,
+                                    );
+                                    refreshPlants();
+                                  }
+                                },
+                                icon: Icon(Icons.water_drop_sharp),
+                                color: wateringStatus[plant.id] == true
+                                    ? Colors.blue
+                                    : Colors.grey,
                               ),
-                            );
-                            refreshPlants();
-                          },
-                          icon: Icon(Icons.eco, color: Colors.green),
-                        ),
-                        IconButton(
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    CameraPage(plantId: plant.id!),
+                              IconButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddNewGrowthRecord(
+                                        plantId: plant.id!,
+                                      ),
+                                    ),
+                                  );
+                                  refreshPlants();
+                                },
+                                icon: Icon(Icons.eco, color: Colors.green),
                               ),
-                            );
-                          },
-                          icon: Icon(Icons.camera_alt),
-                        ),
+                              IconButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CameraPage(plantId: plant.id!),
+                                    ),
+                                  );
+                                },
+                                icon: Icon(Icons.camera_alt),
+                              ),
 
-                        IconButton(
-                          onPressed: () async {
-                            await dbService.deletePlant(plant.id!);
-                            refreshPlants();
-                          },
-                          icon: Icon(Icons.delete, color: Colors.red),
+                              IconButton(
+                                onPressed: () async {
+                                  await dbService.deletePlant(plant.id!);
+                                  refreshPlants();
+                                },
+                                icon: Icon(Icons.delete, color: Colors.red),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    onTap: () {
-                      debugPrint("Print Nothing");
-                    },
                   ),
                 );
               },
