@@ -201,8 +201,35 @@ class _HomePageState extends State<HomePage> {
 
                               IconButton(
                                 onPressed: () async {
-                                  await dbService.deletePlant(plant.id!);
-                                  refreshPlants();
+                                  final shouldDelete = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text("Delete Plant?"),
+                                        content: Text(
+                                          "Are you sure you want to delete this plant? (This Action is not reversible!)",
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context, false);
+                                            },
+                                            child: Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context, true);
+                                            },
+                                            child: Text("Delete"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                  if (shouldDelete == true) {
+                                    await dbService.deletePlant(plant.id!);
+                                    refreshPlants();
+                                  }
                                 },
                                 icon: Icon(Icons.delete, color: Colors.red),
                               ),
