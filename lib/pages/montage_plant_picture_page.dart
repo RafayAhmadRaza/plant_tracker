@@ -1,10 +1,26 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/photo_model.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:image/image.dart' as img;
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+
+Future<Uint8List> _createGifIsolate(List<String> ImgPaths) async {
+  final encoder = img.GifEncoder();
+
+  for (final path in ImgPaths) {
+    final bytes = await File(path).readAsBytes();
+    final image = img.decodeImage(bytes)!;
+    final resized = img.resize(image, width: 480);
+    encoder.addFrame(resized, duration: 10);
+  }
+  return encoder.finish()!;
+}
 
 class MontagePlantPicturePage extends StatefulWidget {
   const MontagePlantPicturePage({super.key});
@@ -23,6 +39,19 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   int currentImageIndex = 0;
   bool isTimerRunning = false;
   Timer? t;
+
+  Future<String> saveGifToDocuments(Uint8List gifBytes) async {
+    final dir = await getApplicationDocumentsDirectory();
+    debugPrint(
+      '${dir.path}/plant_growth_${DateTime.now().millisecondsSinceEpoch}.gif',
+    );
+    final file = File(
+      '${dir.path}/plant_growth_${DateTime.now().millisecondsSinceEpoch}.gif',
+    );
+    await file.writeAsBytes(gifBytes);
+    return file.path;
+  }
+
   void clear() {
     currentImageIndex = 0;
     photos.clear();
@@ -51,7 +80,9 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   @override
   void initState() {
     // TODO: implement initState
+
     super.initState();
+
     loadPlants();
   }
 
@@ -166,7 +197,19 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(onPressed: () {}, child: Text("Save")),
+                  ElevatedButton(
+                    onPressed: () async {
+                      debugPrint("Saving Gif");
+
+                      final gifBytes = await compute(
+                        _createGifIsolate,
+                        imgPathList,
+                      );
+                      await saveGifToDocuments(gifBytes);
+                      debugPrint("Saved Gif");
+                    },
+                    child: Text("Save"),
+                  ),
                   SizedBox(width: 100),
                   ElevatedButton(
                     onPressed: () {
