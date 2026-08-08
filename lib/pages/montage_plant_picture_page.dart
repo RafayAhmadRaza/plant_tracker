@@ -10,14 +10,24 @@ import 'package:image/image.dart' as img;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<Uint8List> _createGifIsolate(List<String> ImgPaths) async {
+Future<Uint8List> _createGifIsolate(
+  List<(String Path, String label)> frames,
+) async {
   final encoder = img.GifEncoder();
 
-  for (final path in ImgPaths) {
-    final bytes = await File(path).readAsBytes();
+  for (final frame in frames) {
+    final bytes = await File(frame.$1).readAsBytes();
     final image = img.decodeImage(bytes)!;
     final resized = img.resize(image, width: 480);
-    encoder.addFrame(resized, duration: 10);
+    img.drawString(
+      resized,
+      frame.$2,
+      font: img.arial24,
+      x: 10,
+      y: resized.height - 30,
+      color: img.ColorRgb8(255, 255, 255),
+    );
+    encoder.addFrame(resized, duration: 50);
   }
   return encoder.finish()!;
 }
@@ -39,9 +49,11 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   int currentImageIndex = 0;
   bool isTimerRunning = false;
   Timer? t;
+  var isSaving = false;
 
   Future<String> saveGifToDocuments(Uint8List gifBytes) async {
     final dir = await getApplicationDocumentsDirectory();
+
     debugPrint(
       '${dir.path}/plant_growth_${DateTime.now().millisecondsSinceEpoch}.gif',
     );
@@ -167,7 +179,11 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
               child: Text("Generate Montage"),
             ),
             SizedBox(height: 12),
-            if (imgPathList.isNotEmpty) ...[
+            if (isSaving == true) ...[
+              Text("Saving Gif Please wait!"),
+              CircularProgressIndicator(),
+            ],
+            if (imgPathList.isNotEmpty && isSaving == false) ...[
               Stack(
                 children: [
                   SizedBox(
@@ -199,14 +215,30 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
+                      setState(() {
+                        isSaving = true;
+                      });
                       debugPrint("Saving Gif");
-
-                      final gifBytes = await compute(
-                        _createGifIsolate,
-                        imgPathList,
+                      List<String> datelist = [];
+                      for (final photo in photos) {
+                        datelist.add(
+                          photo.takenAt.day.toString() +
+                              "-" +
+                              photo.takenAt.month.toString() +
+                              "-" +
+                              photo.takenAt.year.toString(),
+                        );
+                      }
+                      final List<(String, String)> frames = List.generate(
+                        imgPathList.length,
+                        (i) => (imgPathList[i], datelist[i]),
                       );
+                      final gifBytes = await compute(_createGifIsolate, frames);
                       await saveGifToDocuments(gifBytes);
                       debugPrint("Saved Gif");
+                      setState(() {
+                        isSaving = false;
+                      });
                     },
                     child: Text("Save"),
                   ),
