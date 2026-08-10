@@ -8,6 +8,7 @@ import 'package:image/image.dart' as img;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
+import 'package:plant_tracker/Models/colors_storage.dart';
 
 Future<Uint8List> _createGifIsolate(
   (List<(String path, String label)> frames, double duration) data,
@@ -19,14 +20,14 @@ Future<Uint8List> _createGifIsolate(
   for (final frame in frames) {
     final bytes = await File(frame.$1).readAsBytes();
     final image = img.decodeImage(bytes)!;
-    final resized = img.resize(image, width: 480);
+    final resized = img.resize(image, width: 720);
     img.drawString(
       resized,
       frame.$2,
       font: img.arial24,
       x: 10,
       y: resized.height - 30,
-      color: img.ColorRgb8(255, 255, 255),
+      color: ColorsStorage.subImageTitleColor,
     );
     encoder.addFrame(resized, duration: (100 * duration).round());
   }
