@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 
 class GraphPage extends StatefulWidget {
   const GraphPage({super.key});
@@ -16,7 +16,7 @@ class GraphPageState extends State<GraphPage> {
   final DatabaseService dbService = DatabaseService.instance;
   List<Plant> plants = [];
   List<GrowthRecord> growthList = [];
-  int selected_plant = 0;
+  int selectedPlant = 0;
   List<double> growthHeights = [];
   List<DateTime> dateList = [];
   List<FlSpot> flspotlist = [];
@@ -41,7 +41,7 @@ class GraphPageState extends State<GraphPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
+    //
 
     super.initState();
     plants.clear();
@@ -60,7 +60,7 @@ class GraphPageState extends State<GraphPage> {
 
     setState(() {
       plants = loadedplants;
-      selected_plant = loadedplants.first.id!;
+      selectedPlant = loadedplants.first.id!;
     });
   }
 
@@ -99,7 +99,7 @@ class GraphPageState extends State<GraphPage> {
     }
   }
 
-  double average_heights(List<double> growthHeights) {
+  double averageHeights(List<double> growthHeights) {
     final totalgrowths = growthHeights.length;
 
     double sum = 0.0;
@@ -132,10 +132,10 @@ class GraphPageState extends State<GraphPage> {
             SizedBox(height: 5),
             DropdownButton(
               items: plants.map(buildMenuItem).toList(),
-              value: selected_plant,
+              value: selectedPlant,
               onChanged: (value) {
                 setState(() {
-                  selected_plant = value!;
+                  selectedPlant = value!;
                 });
               },
             ),
@@ -151,7 +151,7 @@ class GraphPageState extends State<GraphPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await loadSpecificRecords(selected_plant);
+                await loadSpecificRecords(selectedPlant);
 
                 if (growthList.isEmpty) {
                   return;
@@ -193,10 +193,10 @@ class GraphPageState extends State<GraphPage> {
                             }
                             final date = dateList[index];
                             return SideTitleWidget(
+                              meta: meta,
                               child: Text(
                                 "${date.month}/${date.day}/${date.year}",
                               ),
-                              meta: meta,
                             );
                           },
                         ),
@@ -231,8 +231,8 @@ class GraphPageState extends State<GraphPage> {
                   curve: Curves.linear,
                 ),
               ),
-              Text("Average Growth Of ${selected_plant}"),
-              Text("${average_heights(growthHeights)}"),
+              Text("Average Growth Of $selectedPlant"),
+              Text("${averageHeights(growthHeights)}"),
             ],
           ],
         ),

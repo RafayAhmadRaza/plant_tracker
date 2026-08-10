@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 
 class AddNewGrowthRecord extends StatefulWidget {
   final int plantId;

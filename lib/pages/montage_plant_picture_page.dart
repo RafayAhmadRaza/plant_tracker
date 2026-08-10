@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/photo_model.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:gallery_saver_plus/gallery_saver.dart';
 
 Future<Uint8List> _createGifIsolate(
-  List<(String Path, String label)> frames,
+  List<(String path, String label)> frames,
 ) async {
   final encoder = img.GifEncoder();
 
@@ -54,9 +53,6 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   Future<String> saveGifToDocuments(Uint8List gifBytes) async {
     final dir = await getApplicationDocumentsDirectory();
 
-    debugPrint(
-      '${dir.path}/plant_growth_${DateTime.now().millisecondsSinceEpoch}.gif',
-    );
     final file = File(
       '${dir.path}/plant_growth_${DateTime.now().millisecondsSinceEpoch}.gif',
     );
@@ -91,14 +87,14 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
 
   @override
   void initState() {
-    // TODO: implement initState
+    //
 
     super.initState();
 
     loadPlants();
   }
 
-  Future<void> load_photos_path(int id) async {
+  Future<void> loadPhotosPath(int id) async {
     imgPathList.clear();
     photos.clear();
     photos = await dbService.readPhotosForPlant(id);
@@ -147,7 +143,7 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
               onPressed: () async {
                 debugPrint("Button Pressed");
 
-                await load_photos_path(selectedPlant);
+                await loadPhotosPath(selectedPlant);
 
                 debugPrint("Loading Done");
 
@@ -234,7 +230,8 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                         (i) => (imgPathList[i], datelist[i]),
                       );
                       final gifBytes = await compute(_createGifIsolate, frames);
-                      await saveGifToDocuments(gifBytes);
+                      final filePath = await saveGifToDocuments(gifBytes);
+                      await GallerySaver.saveImage(filePath);
                       debugPrint("Saved Gif");
                       setState(() {
                         isSaving = false;

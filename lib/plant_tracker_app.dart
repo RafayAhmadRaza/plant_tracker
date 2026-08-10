@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:plant_tracker/pages/SettingsPage.dart';
 import 'package:plant_tracker/pages/graph_page.dart';
 import 'package:plant_tracker/pages/home_page.dart';
@@ -15,24 +14,22 @@ class PlantTrackerApp extends StatefulWidget {
 class _PlantTrackerAppState extends State<PlantTrackerApp> {
   int myIndex = 0;
   final graphPageKey = GlobalKey<GraphPageState>();
-  final MontagePlantPicturePageKey = GlobalKey<MontagePlantPicturePageState>();
+  final montagePlantPicturePageKey = GlobalKey<MontagePlantPicturePageState>();
 
   late final List<Widget> widgetList = [
     HomePage(),
     GraphPage(key: graphPageKey),
-    MontagePlantPicturePage(key: MontagePlantPicturePageKey),
+    MontagePlantPicturePage(key: montagePlantPicturePageKey),
     Settings_Page(),
   ];
   static const graphPageIndex = 1;
-  static const MontagePageIndex = 2;
-  static const Settings = 3;
-
-  static const homepageindex = 0;
+  static const montagePageIndex = 2;
+  static const settingPageIndex = 3;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(children: widgetList, index: myIndex),
+      body: IndexedStack(index: myIndex, children: widgetList),
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
           setState(() {
@@ -42,10 +39,10 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
             graphPageKey.currentState?.loadPlants();
             graphPageKey.currentState?.clear();
           }
-          if (index == MontagePageIndex) {
-            MontagePlantPicturePageKey.currentState?.stopSlideshow();
-            MontagePlantPicturePageKey.currentState?.clear();
-            MontagePlantPicturePageKey.currentState?.loadPlants();
+          if (index == montagePageIndex) {
+            montagePlantPicturePageKey.currentState?.stopSlideshow();
+            montagePlantPicturePageKey.currentState?.clear();
+            montagePlantPicturePageKey.currentState?.loadPlants();
           }
         },
         showUnselectedLabels: false,

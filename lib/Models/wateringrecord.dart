@@ -1,6 +1,6 @@
 const String wateringrecordTable = 'wateringrecord';
 
-class wateringrecordFields {
+class wateringRecordFields {
   static final List<String> values = [id, plantId, wateredAt];
   static final String id = '_id';
   static final String plantId = 'plantId';
@@ -19,15 +19,15 @@ class Wateringrecord {
   });
 
   Map<String, Object?> toJson() => {
-    wateringrecordFields.id: id,
-    wateringrecordFields.plantId: plantId,
-    wateringrecordFields.wateredAt: wateredAt.toIso8601String(),
+    wateringRecordFields.id: id,
+    wateringRecordFields.plantId: plantId,
+    wateringRecordFields.wateredAt: wateredAt.toIso8601String(),
   };
 
   static Wateringrecord fromJson(Map<String, Object?> json) => Wateringrecord(
-    id: json[wateringrecordFields.id] as int?,
-    plantId: json[wateringrecordFields.plantId] as int,
-    wateredAt: DateTime.parse(json[wateringrecordFields.wateredAt] as String),
+    id: json[wateringRecordFields.id] as int?,
+    plantId: json[wateringRecordFields.plantId] as int,
+    wateredAt: DateTime.parse(json[wateringRecordFields.wateredAt] as String),
   );
 
   Wateringrecord copy({int? id, int? plantId, DateTime? wateredAt}) =>

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
 
 import 'package:plant_tracker/Models/plant_model.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 import 'package:date_field/date_field.dart';
 
 class AddPlantPage extends StatefulWidget {

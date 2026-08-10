@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 import 'package:plant_tracker/Models/photo_model.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 

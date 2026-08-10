@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/colors_storage.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
 import 'package:plant_tracker/pages/camera_page.dart';
 import 'package:plant_tracker/pages/edit_plant.dart';
@@ -24,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = false;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     NotificationService().scheduleNotification(
       title: "Planty Remainder!",
@@ -40,11 +39,11 @@ class _HomePageState extends State<HomePage> {
       isLoading = true;
     });
 
-    this.plants = await dbService.readAllPlants();
+    plants = await dbService.readAllPlants();
     wateringStatus.clear();
-    List<Wateringrecord> wrlists_temp = await dbService.readAllwr();
+    List<Wateringrecord> wrListTemp = await dbService.readAllwr();
     final today = DateTime.now();
-    for (final record in wrlists_temp) {
+    for (final record in wrListTemp) {
       final wateredToday =
           record.wateredAt.year == today.year &&
           record.wateredAt.month == today.month &&
@@ -103,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: ColorsStorage.name_whimsy_color,
+                            color: ColorsStorage.mainTitleColor,
                           ),
                         ),
                         Text(
@@ -112,17 +111,13 @@ class _HomePageState extends State<HomePage> {
                               plant.plantedDate.month.toString() +
                               "-" +
                               plant.plantedDate.year.toString()),
-                          style: TextStyle(
-                            color: ColorsStorage.sub_title_whimsy_color,
-                          ),
+                          style: TextStyle(color: ColorsStorage.subTitleColor),
                         ),
                         Text(
                           (plant.notes == null
                               ? "No Notes"
                               : plant.notes.toString()),
-                          style: TextStyle(
-                            color: ColorsStorage.sub_title_whimsy_color,
-                          ),
+                          style: TextStyle(color: ColorsStorage.subTitleColor),
                         ),
                         Center(
                           child: Row(

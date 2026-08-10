@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
-import 'package:plant_tracker/Service/DatabaseService.dart';
+import 'package:plant_tracker/Service/database_service.dart';
 import 'package:flutter/services.dart';
 
 class EditPlant extends StatefulWidget {
   final int plantID;
-  EditPlant({super.key, required this.plantID});
+  const EditPlant({super.key, required this.plantID});
 
   @override
   State<EditPlant> createState() => EditPlantState();
@@ -19,7 +19,7 @@ class EditPlantState extends State<EditPlant> {
   final _formkey = GlobalKey<FormState>();
   String name = '';
   String note = "";
-  double? Height = 0.0;
+  double? height = 0.0;
   TextEditingController nameController = TextEditingController();
   TextEditingController noteController = TextEditingController();
 
@@ -30,20 +30,19 @@ class EditPlantState extends State<EditPlant> {
     return null;
   }
 
-  Future<void> load_plant(int plantID) async {
+  Future<void> loadPlant(int plantID) async {
     plant = await dbService.readPlant(plantID);
     nameController.text = plant!.name;
     noteController.text = plant!.notes!.isEmpty
         ? "No Notes"
         : plant!.notes.toString();
     gr = await dbService.readGrowthRecord(plantID);
-    Height = gr!.height;
+    height = gr!.height;
   }
 
   @override
   void initState() {
-    // TODO: implement initState
-    load_plant(widget.plantID);
+    loadPlant(widget.plantID);
     super.initState();
   }
 
@@ -85,7 +84,7 @@ class EditPlantState extends State<EditPlant> {
                 if (parsedValue == null) {
                   return;
                 }
-                Height = parsedValue;
+                height = parsedValue;
               },
             ),
             const SizedBox(height: 12),
@@ -105,7 +104,7 @@ class EditPlantState extends State<EditPlant> {
 
             ElevatedButton(
               onPressed: () async {
-                final edit_plant = Plant(
+                final editPlant = Plant(
                   id: plant!.id,
                   name: nameController.text,
                   plantedDate: plant!.plantedDate,
@@ -113,15 +112,15 @@ class EditPlantState extends State<EditPlant> {
                       ? "null"
                       : noteController.text,
                 );
-                await dbService.updatePlant(edit_plant);
+                await dbService.updatePlant(editPlant);
 
-                GrowthRecord edit_gr = GrowthRecord(
-                  plantId: edit_plant.id!,
-                  date: edit_plant.plantedDate,
-                  height: Height ?? gr!.height,
+                GrowthRecord editedGR = GrowthRecord(
+                  plantId: editPlant.id!,
+                  date: editPlant.plantedDate,
+                  height: height ?? gr!.height,
                 );
 
-                await dbService.updateGrowthRecord(edit_gr);
+                await dbService.updateGrowthRecord(editedGR);
 
                 Navigator.pop(context);
               },

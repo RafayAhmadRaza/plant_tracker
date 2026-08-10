@@ -81,11 +81,11 @@ class DatabaseService {
 
     await db.execute('''
     CREATE TABLE $wateringrecordTable(
-    ${wateringrecordFields.id} $idType,
-    ${wateringrecordFields.plantId} $integerType,
-    ${wateringrecordFields.wateredAt} $dateType,
+    ${wateringRecordFields.id} $idType,
+    ${wateringRecordFields.plantId} $integerType,
+    ${wateringRecordFields.wateredAt} $dateType,
 
-    FOREIGN KEY (${wateringrecordFields.plantId}) REFERENCES $tablePlant(${PlantFields.id}) ON DELETE CASCADE
+    FOREIGN KEY (${wateringRecordFields.plantId}) REFERENCES $tablePlant(${PlantFields.id}) ON DELETE CASCADE
     )
 
 
@@ -244,7 +244,7 @@ class DatabaseService {
     return await db.delete(
       wateringrecordTable,
       where:
-          "${wateringrecordFields.plantId} = ? AND ${wateringrecordFields.id} = ?",
+          "${wateringRecordFields.plantId} = ? AND ${wateringRecordFields.id} = ?",
       whereArgs: [plantid, wateringRecordid],
     );
   }
@@ -253,8 +253,8 @@ class DatabaseService {
     final db = await instance.database;
     final maps = await db.query(
       wateringrecordTable,
-      columns: wateringrecordFields.values,
-      where: '${wateringrecordFields.id} = ?',
+      columns: wateringRecordFields.values,
+      where: '${wateringRecordFields.id} = ?',
       whereArgs: [id],
     );
 
@@ -275,7 +275,7 @@ class DatabaseService {
     final db = await instance.database;
     final maps = await db.query(
       wateringrecordTable,
-      where: '${wateringrecordFields.plantId} = ?',
+      where: '${wateringRecordFields.plantId} = ?',
       whereArgs: [plantId],
     );
     return maps.map((json) => Wateringrecord.fromJson(json)).toList();
