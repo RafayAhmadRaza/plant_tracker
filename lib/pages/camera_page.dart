@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:plant_tracker/Service/database_service.dart';
 import 'package:plant_tracker/Models/photo_model.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:gallery_saver_plus/gallery_saver.dart';
 
 class CameraPage extends StatefulWidget {
   final int plantId;
@@ -83,6 +84,7 @@ class _CameraPageState extends State<CameraPage> {
                           takenAt: DateTime.now(),
                         ),
                       );
+                      await GallerySaver.saveImage(savedImage.path);
                     }
                   },
                   child: Text("Save Image"),

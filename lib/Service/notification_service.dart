@@ -6,7 +6,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  bool _isInitialized = false;
+  final bool _isInitialized = false;
 
   bool get isInitializd => _isInitialized;
 

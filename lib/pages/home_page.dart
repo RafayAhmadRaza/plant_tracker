@@ -28,8 +28,8 @@ class _HomePageState extends State<HomePage> {
     NotificationService().scheduleNotification(
       title: "Planty Remainder!",
       body: "Don't forget to check your plants. They might be thirsty! 💧!",
-      hour: 6,
-      minute: 0,
+      hour: 11,
+      minute: 00,
     );
     refreshPlants();
   }

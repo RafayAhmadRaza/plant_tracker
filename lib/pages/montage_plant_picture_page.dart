@@ -10,9 +10,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 
 Future<Uint8List> _createGifIsolate(
-  List<(String path, String label)> frames,
+  (List<(String path, String label)> frames, double duration) data,
 ) async {
   final encoder = img.GifEncoder();
+  final frames = data.$1;
+  final duration = data.$2;
 
   for (final frame in frames) {
     final bytes = await File(frame.$1).readAsBytes();
@@ -26,7 +28,7 @@ Future<Uint8List> _createGifIsolate(
       y: resized.height - 30,
       color: img.ColorRgb8(255, 255, 255),
     );
-    encoder.addFrame(resized, duration: 50);
+    encoder.addFrame(resized, duration: (100 * duration).round());
   }
   return encoder.finish()!;
 }
@@ -49,6 +51,7 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   bool isTimerRunning = false;
   Timer? t;
   var isSaving = false;
+  double montageDuration = 1.0;
 
   Future<String> saveGifToDocuments(Uint8List gifBytes) async {
     final dir = await getApplicationDocumentsDirectory();
@@ -129,49 +132,71 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
         child: Column(
           children: [
             SizedBox(height: 5),
+            // Generate DropDown
             DropdownButton(
               items: plants.map(buildMenuItem).toList(),
               value: selectedPlant,
-              onChanged: (value) {
-                setState(() {
-                  selectedPlant = value!;
-                });
-              },
+              onChanged: isSaving
+                  ? null
+                  : (int? value) {
+                      setState(() {
+                        selectedPlant = value!;
+                      });
+                    },
             ),
+            // Slider
+            SizedBox(height: 12),
+            Slider(
+              value: montageDuration,
+              min: 0.5,
+              max: 1.0,
+              divisions: 19,
+              label: "${montageDuration.toStringAsFixed(1)}s",
+
+              onChanged: isSaving
+                  ? null
+                  : (value) {
+                      setState(() {
+                        montageDuration = value;
+                      });
+                    },
+            ),
+
+            //Generate Montage Button
             SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () async {
-                debugPrint("Button Pressed");
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      debugPrint("Button Pressed");
 
-                await loadPhotosPath(selectedPlant);
+                      await loadPhotosPath(selectedPlant);
 
-                debugPrint("Loading Done");
+                      debugPrint("Loading Done");
 
-                if (imgPathList.isEmpty) {
-                  return;
-                }
-                if (isTimerRunning) {
-                  return;
-                } else {
-                  setState(() {
-                    isTimerRunning = true;
-                  });
-                  t = Timer.periodic(Duration(milliseconds: 1000), (timer) {
-                    if (currentImageIndex < imgPathList.length) {
-                      setState(() {
-                        currentImageIndex++;
-                      });
-                    }
-
-                    if (currentImageIndex == imgPathList.length) {
-                      setState(() {
-                        currentImageIndex = 0;
-                      });
-                    }
-                    debugPrint(currentImageIndex.toString());
-                  });
-                }
-              },
+                      if (imgPathList.isEmpty) {
+                        return;
+                      }
+                      if (isTimerRunning) {
+                        return;
+                      } else {
+                        setState(() {
+                          isTimerRunning = true;
+                        });
+                        t = Timer.periodic(
+                          Duration(
+                            milliseconds: (1000 * montageDuration).round(),
+                          ),
+                          (timer) {
+                            setState(() {
+                              currentImageIndex =
+                                  (currentImageIndex + 1) % imgPathList.length;
+                            });
+                            debugPrint(currentImageIndex.toString());
+                          },
+                        );
+                      }
+                    },
               child: Text("Generate Montage"),
             ),
             SizedBox(height: 12),
@@ -190,17 +215,20 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                       gaplessPlayback: true,
                     ),
                   ),
-                  SizedBox(
-                    height: 300,
-                    width: 300,
-                    child: Text(
-                      (photos[currentImageIndex].takenAt.day.toString() +
-                          "-" +
-                          photos[currentImageIndex].takenAt.month.toString() +
-                          "-" +
-                          photos[currentImageIndex].takenAt.year.toString()),
-                      style: TextStyle(color: Color(0xFFD7CBB2)),
-                      textAlign: TextAlign.center,
+                  Positioned(
+                    bottom: -275,
+                    left: 40,
+                    child: SizedBox(
+                      height: 300,
+                      width: 300,
+                      child: Text(
+                        (photos[currentImageIndex].takenAt.day.toString() +
+                            "-" +
+                            photos[currentImageIndex].takenAt.month.toString() +
+                            "-" +
+                            photos[currentImageIndex].takenAt.year.toString()),
+                        style: TextStyle(color: Color(0xFFD7CBB2)),
+                      ),
                     ),
                   ),
                 ],
@@ -229,13 +257,27 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                         imgPathList.length,
                         (i) => (imgPathList[i], datelist[i]),
                       );
-                      final gifBytes = await compute(_createGifIsolate, frames);
+                      final gifBytes = await compute(_createGifIsolate, (
+                        frames,
+                        montageDuration,
+                      ));
                       final filePath = await saveGifToDocuments(gifBytes);
                       await GallerySaver.saveImage(filePath);
-                      debugPrint("Saved Gif");
+
                       setState(() {
                         isSaving = false;
+                        clear();
                       });
+                      await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text(
+                              "Your Montage has being saved! Check it in your gallery!",
+                            ),
+                          );
+                        },
+                      );
                     },
                     child: Text("Save"),
                   ),
