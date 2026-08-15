@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plant_tracker/pages/SettingsPage.dart';
+import 'package:plant_tracker/pages/settings_page.dart';
 import 'package:plant_tracker/pages/graph_page.dart';
 import 'package:plant_tracker/pages/home_page.dart';
 import 'package:plant_tracker/pages/montage_plant_picture_page.dart';
@@ -20,11 +20,10 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
     HomePage(),
     GraphPage(key: graphPageKey),
     MontagePlantPicturePage(key: montagePlantPicturePageKey),
-    Settings_Page(),
+    SettingsPage(),
   ];
   static const graphPageIndex = 1;
   static const montagePageIndex = 2;
-  static const settingPageIndex = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +37,7 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           if (index == graphPageIndex) {
             graphPageKey.currentState?.loadPlants();
             graphPageKey.currentState?.clear();
+            graphPageKey.currentState?.reloadSettings();
           }
           if (index == montagePageIndex) {
             montagePlantPicturePageKey.currentState?.stopSlideshow();

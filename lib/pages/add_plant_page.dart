@@ -5,6 +5,7 @@ import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/database_service.dart';
 import 'package:date_field/date_field.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPlantPage extends StatefulWidget {
   const AddPlantPage({super.key});
@@ -14,6 +15,8 @@ class AddPlantPage extends StatefulWidget {
 }
 
 class _AddPlantPageState extends State<AddPlantPage> {
+  SharedPreferences? sp;
+
   DatabaseService dbService = DatabaseService.instance;
   Set<String> _selected = {'CM'};
   final _formkey = GlobalKey<FormState>();
@@ -23,6 +26,26 @@ class _AddPlantPageState extends State<AddPlantPage> {
   double? initialHeight = 0.0;
   TextEditingController nameController = TextEditingController();
   TextEditingController noteController = TextEditingController();
+  bool preferencesLoaded = false;
+
+  Future<void> getSharedPreferences() async {
+    sp = await SharedPreferences.getInstance();
+    final savedUnit = sp!.getString("heightUnit") ?? "CM";
+
+    if (!mounted) return;
+
+    setState(() {
+      _selected = {savedUnit};
+      preferencesLoaded = true;
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getSharedPreferences();
+  }
 
   @override
   void dispose() {
@@ -50,6 +73,9 @@ class _AddPlantPageState extends State<AddPlantPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!preferencesLoaded) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text("Add Plant", style: TextStyle(color: Colors.white)),
@@ -112,17 +138,6 @@ class _AddPlantPageState extends State<AddPlantPage> {
                   initialHeight = parsedValue;
                 }
               },
-            ),
-
-            const SizedBox(height: 12),
-
-            SegmentedButton(
-              segments: <ButtonSegment<String>>[
-                ButtonSegment<String>(value: "CM", label: Text("CM")),
-                ButtonSegment<String>(value: "Inches", label: Text("IN")),
-              ],
-              selected: _selected,
-              onSelectionChanged: updateSelected,
             ),
 
             const SizedBox(height: 12),

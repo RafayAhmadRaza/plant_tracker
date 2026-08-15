@@ -4,6 +4,7 @@ import 'package:plant_tracker/Models/growth_record.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 
 import 'package:plant_tracker/Service/database_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GraphPage extends StatefulWidget {
   const GraphPage({super.key});
@@ -14,13 +15,31 @@ class GraphPage extends StatefulWidget {
 
 class GraphPageState extends State<GraphPage> {
   final DatabaseService dbService = DatabaseService.instance;
+  SharedPreferences? sp;
   List<Plant> plants = [];
   List<GrowthRecord> growthList = [];
   int selectedPlant = 0;
   List<double> growthHeights = [];
   List<DateTime> dateList = [];
   List<FlSpot> flspotlist = [];
-  Set<String> _selected = {'CM'};
+  Set<String> _selected = {"CM"};
+
+  void loadUnit() {
+    final savedUnit = sp!.getString("heightUnit") ?? "CM";
+
+    setState(() {
+      _selected = {savedUnit};
+    });
+  }
+
+  void getSharedPreferences() async {
+    sp = await SharedPreferences.getInstance();
+    loadUnit();
+  }
+
+  void reloadSettings() {
+    getSharedPreferences();
+  }
 
   void updateSelected(Set<String> newSelection) {
     setState(() {
@@ -49,6 +68,7 @@ class GraphPageState extends State<GraphPage> {
     dateList.clear();
     flspotlist.clear();
     loadPlants();
+    getSharedPreferences();
   }
 
   void clear() {
@@ -141,14 +161,6 @@ class GraphPageState extends State<GraphPage> {
             ),
             const SizedBox(height: 12),
 
-            SegmentedButton(
-              segments: <ButtonSegment<String>>[
-                ButtonSegment<String>(value: "CM", label: Text("CM")),
-                ButtonSegment<String>(value: "Inches", label: Text("IN")),
-              ],
-              selected: _selected,
-              onSelectionChanged: updateSelected,
-            ),
             ElevatedButton(
               onPressed: () async {
                 await loadSpecificRecords(selectedPlant);
@@ -158,9 +170,8 @@ class GraphPageState extends State<GraphPage> {
                 }
                 getHeights(growthList);
 
-                debugPrint(growthHeights.toString());
-
                 if (_selected.first == "Inches") {
+                  debugPrint("Inches");
                   convertToinches(growthHeights);
                 }
                 setState(() {
@@ -232,7 +243,7 @@ class GraphPageState extends State<GraphPage> {
                 ),
               ),
               Text("Average Growth Of $selectedPlant"),
-              Text("${averageHeights(growthHeights)}"),
+              Text("${averageHeights(growthHeights).toStringAsFixed(3)}"),
             ],
           ],
         ),

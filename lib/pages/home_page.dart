@@ -7,7 +7,6 @@ import 'package:plant_tracker/pages/camera_page.dart';
 import 'package:plant_tracker/pages/edit_plant.dart';
 import 'add_plant_page.dart';
 import 'add_new_growth_record.dart';
-import 'package:plant_tracker/Service/notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,12 +24,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    NotificationService().scheduleNotification(
-      title: "Planty Remainder!",
-      body: "Don't forget to check your plants. They might be thirsty! 💧!",
-      hour: 11,
-      minute: 00,
-    );
     refreshPlants();
   }
 
