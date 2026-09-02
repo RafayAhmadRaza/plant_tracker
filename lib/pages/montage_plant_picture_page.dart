@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gallery_saver_plus/gallery_saver.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:plant_tracker/Models/colors_storage.dart';
 import 'package:plant_tracker/Models/photo_model.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/database_service.dart';
-import 'package:image/image.dart' as img;
-import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:gallery_saver_plus/gallery_saver.dart';
-import 'package:plant_tracker/Models/colors_storage.dart';
+import 'package:share_plus/share_plus.dart';
 
 Future<Uint8List> _createGifIsolate(
   (List<(String path, String label)> frames, double duration) data,
@@ -247,11 +249,11 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                       List<String> datelist = [];
                       for (final photo in photos) {
                         datelist.add(
-                          photo.takenAt.day.toString() +
+                          photo.takenAt.day.toString().padLeft(2, '0') +
                               "-" +
-                              photo.takenAt.month.toString() +
+                              photo.takenAt.month.toString().padLeft(2, '0') +
                               "-" +
-                              photo.takenAt.year.toString(),
+                              photo.takenAt.year.toString().padLeft(2, '0'),
                         );
                       }
                       final List<(String, String)> frames = List.generate(
@@ -276,6 +278,35 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
                             title: Text(
                               "Your Montage has being saved! Check it in your gallery!",
                             ),
+                            actions: [
+                              Row(
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      final box =
+                                          context.findRenderObject()
+                                              as RenderBox?;
+                                      if (filePath.isNotEmpty) {
+                                        SharePlus.instance.share(
+                                          ShareParams(
+                                            files: [XFile(filePath)],
+                                            text:
+                                                'Check out my plant\'s growth montage!',
+                                            sharePositionOrigin: box != null
+                                                ? box.localToGlobal(
+                                                        Offset.zero,
+                                                      ) &
+                                                      box.size
+                                                : null,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Text("Share Gif"),
+                                  ),
+                                ],
+                              ),
+                            ],
                           );
                         },
                       );
