@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -117,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Center(
         child: Column(
           children: [
-            SizedBox(height: 20),
+            SizedBox(height: 40),
             Text("Unit"),
             //Unit Prefernce
             SegmentedButton(
@@ -129,7 +129,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onSelectionChanged: updateSelected,
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 40),
             Text("Notifications"),
 
             //Notification Allowed
@@ -141,6 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
               selected: notificationsEnabled,
               onSelectionChanged: updatedNotifications,
             ),
+            const SizedBox(height: 40),
 
             //Notification Time
             ListTile(

@@ -1,10 +1,9 @@
+import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:plant_tracker/Models/growth_record.dart';
-
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/database_service.dart';
-import 'package:date_field/date_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPlantPage extends StatefulWidget {
