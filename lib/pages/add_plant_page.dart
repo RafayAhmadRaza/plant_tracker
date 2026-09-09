@@ -15,13 +15,10 @@ class AddPlantPage extends StatefulWidget {
 
 class _AddPlantPageState extends State<AddPlantPage> {
   SharedPreferences? sp;
-
   DatabaseService dbService = DatabaseService.instance;
   Set<String> _selected = {'CM'};
   final _formkey = GlobalKey<FormState>();
-  String name = '';
   DateTime datePlanted = DateTime.now();
-  String note = "";
   double? initialHeight = 0.0;
   TextEditingController nameController = TextEditingController();
   TextEditingController noteController = TextEditingController();
@@ -30,9 +27,7 @@ class _AddPlantPageState extends State<AddPlantPage> {
   Future<void> getSharedPreferences() async {
     sp = await SharedPreferences.getInstance();
     final savedUnit = sp!.getString("heightUnit") ?? "CM";
-
     if (!mounted) return;
-
     setState(() {
       _selected = {savedUnit};
       preferencesLoaded = true;
@@ -41,7 +36,6 @@ class _AddPlantPageState extends State<AddPlantPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getSharedPreferences();
   }
@@ -54,21 +48,15 @@ class _AddPlantPageState extends State<AddPlantPage> {
   }
 
   String? checkNameEntered(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return "Enter Name Please";
-    }
+    if (value == null || value.trim().isEmpty) return "Enter Name Please";
     return null;
   }
 
   void updateSelected(Set<String> newSelection) {
-    setState(() {
-      _selected = newSelection;
-    });
+    setState(() => _selected = newSelection);
   }
 
-  double convertTocm(double? valueInches) {
-    return valueInches! * 2.54;
-  }
+  double convertTocm(double? valueInches) => valueInches! * 2.54;
 
   @override
   Widget build(BuildContext context) {
@@ -76,104 +64,77 @@ class _AddPlantPageState extends State<AddPlantPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Add Plant", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-      ),
+      appBar: AppBar(title: const Text("Add Plant")),
       body: Form(
         key: _formkey,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Column(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            SizedBox(height: 12),
             TextFormField(
-              decoration: InputDecoration(
-                labelText: "Name",
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(width: 2.0),
-                ),
-              ),
+              decoration: const InputDecoration(labelText: "Name"),
               controller: nameController,
               validator: checkNameEntered,
             ),
-
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 16),
             DateTimeFormField(
               decoration: const InputDecoration(labelText: "Date Planted At"),
               firstDate: DateTime(2000),
               lastDate: DateTime.now(),
               initialPickerDateTime: DateTime.now(),
               onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    datePlanted = value;
-                  });
-                }
+                if (value != null) setState(() => datePlanted = value);
               },
             ),
-
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 16),
             TextField(
-              decoration: InputDecoration(
-                labelText: "Enter Intial Growth Height",
-              ),
+              decoration: const InputDecoration(labelText: "Initial Growth Height"),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               onChanged: (value) {
                 final parsedValue = double.tryParse(value);
-                if (parsedValue == null) {
-                  return;
-                }
-
-                if (_selected.first == 'Inches') {
-                  final convertedValue = convertTocm(parsedValue);
-                  initialHeight = convertedValue;
-                } else {
-                  initialHeight = parsedValue;
-                }
+                if (parsedValue == null) return;
+                initialHeight = _selected.first == 'Inches'
+                    ? convertTocm(parsedValue)
+                    : parsedValue;
               },
             ),
-
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 16),
+            SegmentedButton(
+              segments: const <ButtonSegment<String>>[
+                ButtonSegment<String>(value: "CM", label: Text("CM")),
+                ButtonSegment<String>(value: "Inches", label: Text("IN")),
+              ],
+              selected: _selected,
+              onSelectionChanged: updateSelected,
+            ),
+            const SizedBox(height: 16),
             TextFormField(
-              decoration: InputDecoration(
-                labelText: "Notes",
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(width: 2.0),
-                ),
-              ),
+              decoration: const InputDecoration(labelText: "Notes"),
               controller: noteController,
             ),
-
-            const SizedBox(height: 12),
-
-            ElevatedButton(
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
               onPressed: () async {
+                if (!_formkey.currentState!.validate()) return;
                 final plant = Plant(
                   name: nameController.text,
                   plantedDate: datePlanted,
-                  notes: noteController.text.isEmpty
-                      ? null
-                      : noteController.text,
+                  notes: noteController.text.isEmpty ? null : noteController.text,
                 );
                 final plantCopy = await dbService.createPlant(plant);
-                GrowthRecord gr = GrowthRecord(
+                final gr = GrowthRecord(
                   plantId: plantCopy.id!,
                   date: datePlanted,
                   height: initialHeight ?? 0.0,
                 );
                 await dbService.createGrowthRecord(gr);
-
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
-              child: Icon(Icons.save),
+              icon: const Icon(Icons.eco),
+              label: const Text("Plant It"),
             ),
           ],
         ),

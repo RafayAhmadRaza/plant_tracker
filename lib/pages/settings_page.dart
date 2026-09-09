@@ -26,12 +26,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void loadHour() {
-    final savedHour = sp!.getInt("hourInt") ?? 6;
-
-    setState(() {
-      hour = savedHour;
-      debugPrint("$hour");
-    });
+    setState(() => hour = sp!.getInt("hourInt") ?? 6);
   }
 
   Future<void> setMinute(int min) async {
@@ -40,25 +35,18 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void loadMinute() {
-    final savedMinute = sp!.getInt("minInt") ?? 0;
-
-    setState(() {
-      min = savedMinute;
-      debugPrint("$min");
-    });
+    setState(() => min = sp!.getInt("minInt") ?? 0);
   }
 
   void updatedNotifications(Set<bool> a) {
-    setState(() {
-      notificationsEnabled = a;
-    });
+    setState(() => notificationsEnabled = a);
     setNotifications(a.first);
     if (a.first == false) {
       NotificationService().cancelAllNotifications();
     } else {
       NotificationService().scheduleNotification(
-        title: "Planty Remainder!",
-        body: "Don't forget to check your plants. They might be thirsty! 💧!",
+        title: "Planty Reminder!",
+        body: "Don't forget to check your plants. They might be thirsty! 💧",
         hour: hour,
         minute: min,
       );
@@ -66,31 +54,20 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void loadNotifications() {
-    final savedBool = sp!.getBool("notificationEnabled") ?? true;
-
-    setState(() {
-      notificationsEnabled = {savedBool};
-    });
+    setState(() => notificationsEnabled = {sp!.getBool("notificationEnabled") ?? true});
   }
 
   void updateSelected(Set<String> newSelection) {
-    setState(() {
-      _selected = newSelection;
-    });
+    setState(() => _selected = newSelection);
     setUnit(_selected);
   }
 
   Future<void> setUnit(Set<String> unit) async {
     await sp!.setString('heightUnit', unit.first);
-    debugPrint(sp!.getString("heightUnit"));
   }
 
   void loadUnit() {
-    final savedUnit = sp!.getString("heightUnit") ?? "CM";
-
-    setState(() {
-      _selected = {savedUnit};
-    });
+    setState(() => _selected = {sp!.getString("heightUnit") ?? "CM"});
   }
 
   void getSharedPreferences() async {
@@ -107,48 +84,58 @@ class _SettingsPageState extends State<SettingsPage> {
     getSharedPreferences();
   }
 
+  Widget _settingsCard({required String title, required Widget child}) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Settings", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            SizedBox(height: 40),
-            Text("Unit"),
-            //Unit Prefernce
-            SegmentedButton(
-              segments: <ButtonSegment<String>>[
+      appBar: AppBar(title: const Text("Settings")),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        children: [
+          _settingsCard(
+            title: "Measurement Unit",
+            child: SegmentedButton(
+              segments: const <ButtonSegment<String>>[
                 ButtonSegment<String>(value: "CM", label: Text("CM")),
                 ButtonSegment<String>(value: "Inches", label: Text("IN")),
               ],
               selected: _selected,
               onSelectionChanged: updateSelected,
             ),
-
-            const SizedBox(height: 40),
-            Text("Notifications"),
-
-            //Notification Allowed
-            SegmentedButton(
-              segments: <ButtonSegment<bool>>[
+          ),
+          _settingsCard(
+            title: "Notifications",
+            child: SegmentedButton(
+              segments: const <ButtonSegment<bool>>[
                 ButtonSegment<bool>(value: true, label: Text("Yes")),
                 ButtonSegment<bool>(value: false, label: Text("No")),
               ],
               selected: notificationsEnabled,
               onSelectionChanged: updatedNotifications,
             ),
-            const SizedBox(height: 40),
-
-            //Notification Time
-            ListTile(
-              title: Text("Notification Time"),
-              subtitle: Text(
-                TimeOfDay(hour: hour, minute: min).format(context),
-              ),
+          ),
+          _settingsCard(
+            title: "Reminder Time",
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(TimeOfDay(hour: hour, minute: min).format(context)),
               trailing: const Icon(Icons.access_time),
               onTap: notificationsEnabled.first == false
                   ? null
@@ -164,8 +151,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       }
                     },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

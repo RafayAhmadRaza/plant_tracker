@@ -17,114 +17,89 @@ class EditPlantState extends State<EditPlant> {
   Plant? plant;
   GrowthRecord? gr;
   final _formkey = GlobalKey<FormState>();
-  String name = '';
-  String note = "";
   double? height = 0.0;
   TextEditingController nameController = TextEditingController();
   TextEditingController noteController = TextEditingController();
+  bool loaded = false;
 
   String? checkNameEntered(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return "Enter Name Please";
-    }
+    if (value == null || value.trim().isEmpty) return "Enter Name Please";
     return null;
   }
 
   Future<void> loadPlant(int plantID) async {
     plant = await dbService.readPlant(plantID);
     nameController.text = plant!.name;
-    noteController.text = plant!.notes!.isEmpty
-        ? "No Notes"
-        : plant!.notes.toString();
+    noteController.text =
+        (plant!.notes == null || plant!.notes!.isEmpty) ? "" : plant!.notes!;
     gr = await dbService.readGrowthRecord(plantID);
     height = gr!.height;
+    setState(() => loaded = true);
   }
 
   @override
   void initState() {
-    loadPlant(widget.plantID);
     super.initState();
+    loadPlant(widget.plantID);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!loaded) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Edit Plant", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-      ),
+      appBar: AppBar(title: const Text("Edit Plant")),
       body: Form(
         key: _formkey,
         autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Column(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            SizedBox(height: 12),
             TextFormField(
-              decoration: InputDecoration(
-                labelText: "Name",
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(width: 2.0),
-                ),
-              ),
+              decoration: const InputDecoration(labelText: "Name"),
               controller: nameController,
               validator: checkNameEntered,
             ),
-
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 16),
             TextField(
-              decoration: InputDecoration(labelText: "Enter Growth Height"),
+              decoration: const InputDecoration(labelText: "Enter Growth Height"),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               onChanged: (value) {
                 final parsedValue = double.tryParse(value);
-                if (parsedValue == null) {
-                  return;
-                }
-                height = parsedValue;
+                if (parsedValue != null) height = parsedValue;
               },
             ),
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 16),
             TextFormField(
-              decoration: InputDecoration(
-                labelText: "Notes",
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(width: 2.0),
-                ),
-              ),
+              decoration: const InputDecoration(labelText: "Notes"),
               controller: noteController,
             ),
-
-            const SizedBox(height: 12),
-
-            ElevatedButton(
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
               onPressed: () async {
+                if (!_formkey.currentState!.validate()) return;
                 final editPlant = Plant(
                   id: plant!.id,
                   name: nameController.text,
                   plantedDate: plant!.plantedDate,
-                  notes: noteController.text.isEmpty
-                      ? "null"
-                      : noteController.text,
+                  notes: noteController.text.isEmpty ? null : noteController.text,
                 );
                 await dbService.updatePlant(editPlant);
 
-                GrowthRecord editedGR = GrowthRecord(
+                final editedGR = GrowthRecord(
                   plantId: editPlant.id!,
                   date: editPlant.plantedDate,
                   height: height ?? gr!.height,
                 );
-
                 await dbService.updateGrowthRecord(editedGR);
-
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
-              child: Icon(Icons.save),
+              icon: const Icon(Icons.save),
+              label: const Text("Save Changes"),
             ),
           ],
         ),

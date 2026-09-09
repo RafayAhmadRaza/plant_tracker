@@ -125,208 +125,181 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
   );
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Montage Maker", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            SizedBox(height: 5),
-            // Generate DropDown
-            DropdownButton(
-              items: plants.map(buildMenuItem).toList(),
-              value: selectedPlant,
-              onChanged: isSaving
-                  ? null
-                  : (int? value) {
-                      setState(() {
-                        selectedPlant = value!;
-                      });
-                    },
-            ),
-            // Slider
-            SizedBox(height: 12),
-            Slider(
-              value: montageDuration,
-              min: 0.5,
-              max: 1.0,
-              divisions: 19,
-              label: "${montageDuration.toStringAsFixed(1)}s",
-
-              onChanged: isSaving
-                  ? null
-                  : (value) {
-                      setState(() {
-                        montageDuration = value;
-                      });
-                    },
-            ),
-
-            //Generate Montage Button
-            SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: isSaving
-                  ? null
-                  : () async {
-                      debugPrint("Button Pressed");
-
-                      await loadPhotosPath(selectedPlant);
-
-                      debugPrint("Loading Done");
-
-                      if (imgPathList.isEmpty) {
-                        return;
-                      }
-                      if (isTimerRunning) {
-                        return;
-                      } else {
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(title: const Text("Montage Maker")),
+    body: Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          DropdownButton(
+            items: plants.map(buildMenuItem).toList(),
+            value: selectedPlant,
+            onChanged: isSaving
+                ? null
+                : (int? value) => setState(() => selectedPlant = value!),
+          ),
+          const SizedBox(height: 16),
+          Slider(
+            value: montageDuration,
+            min: 0.5,
+            max: 1.0,
+            divisions: 19,
+            label: "${montageDuration.toStringAsFixed(1)}s",
+            activeColor: const Color(0xFF6FBF73),
+            onChanged: isSaving
+                ? null
+                : (value) => setState(() => montageDuration = value),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: isSaving
+                ? null
+                : () async {
+                    await loadPhotosPath(selectedPlant);
+                    if (imgPathList.isEmpty || isTimerRunning) return;
+                    setState(() => isTimerRunning = true);
+                    t = Timer.periodic(
+                      Duration(milliseconds: (1000 * montageDuration).round()),
+                      (timer) {
                         setState(() {
-                          isTimerRunning = true;
+                          currentImageIndex =
+                              (currentImageIndex + 1) % imgPathList.length;
                         });
-                        t = Timer.periodic(
-                          Duration(
-                            milliseconds: (1000 * montageDuration).round(),
-                          ),
-                          (timer) {
-                            setState(() {
-                              currentImageIndex =
-                                  (currentImageIndex + 1) % imgPathList.length;
-                            });
-                            debugPrint(currentImageIndex.toString());
-                          },
-                        );
-                      }
-                    },
-              child: Text("Generate Montage"),
-            ),
-            SizedBox(height: 12),
-            if (isSaving == true) ...[
-              Text("Saving Gif Please wait!"),
-              CircularProgressIndicator(),
-            ],
-            if (imgPathList.isNotEmpty && isSaving == false) ...[
-              Stack(
-                children: [
-                  SizedBox(
-                    height: 300,
-                    width: 300,
-                    child: Image(
+                      },
+                    );
+                  },
+            icon: const Icon(Icons.movie_creation),
+            label: const Text("Generate Montage"),
+          ),
+          const SizedBox(height: 16),
+          if (isSaving) ...[
+            const Text("Saving Gif, please wait!"),
+            const SizedBox(height: 8),
+            const CircularProgressIndicator(),
+          ],
+          if (imgPathList.isNotEmpty && !isSaving) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: SizedBox(
+                height: 300,
+                width: 300,
+                child: Stack(
+                  children: [
+                    Image(
                       image: FileImage(File(imgPathList[currentImageIndex])),
                       gaplessPlayback: true,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -275,
-                    left: 40,
-                    child: SizedBox(
-                      height: 300,
+                      fit: BoxFit.cover,
                       width: 300,
-                      child: Text(
-                        (photos[currentImageIndex].takenAt.day.toString() +
-                            "-" +
-                            photos[currentImageIndex].takenAt.month.toString() +
-                            "-" +
-                            photos[currentImageIndex].takenAt.year.toString()),
-                        style: TextStyle(color: Color(0xFFD7CBB2)),
+                      height: 300,
+                    ),
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(120),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          "${photos[currentImageIndex].takenAt.day}-"
+                          "${photos[currentImageIndex].takenAt.month}-"
+                          "${photos[currentImageIndex].takenAt.year}",
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        isSaving = true;
-                      });
-                      debugPrint("Saving Gif");
-                      List<String> datelist = [];
-                      for (final photo in photos) {
-                        datelist.add(
-                          photo.takenAt.day.toString().padLeft(2, '0') +
-                              "-" +
-                              photo.takenAt.month.toString().padLeft(2, '0') +
-                              "-" +
-                              photo.takenAt.year.toString().padLeft(2, '0'),
-                        );
-                      }
-                      final List<(String, String)> frames = List.generate(
-                        imgPathList.length,
-                        (i) => (imgPathList[i], datelist[i]),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    setState(() => isSaving = true);
+                    List<String> datelist = [];
+                    for (final photo in photos) {
+                      datelist.add(
+                        photo.takenAt.day.toString().padLeft(2, '0') +
+                            "-" +
+                            photo.takenAt.month.toString().padLeft(2, '0') +
+                            "-" +
+                            photo.takenAt.year.toString().padLeft(2, '0'),
                       );
-                      final gifBytes = await compute(_createGifIsolate, (
-                        frames,
-                        montageDuration,
-                      ));
-                      final filePath = await saveGifToDocuments(gifBytes);
-                      await GallerySaver.saveImage(filePath);
-
-                      setState(() {
-                        isSaving = false;
-                        clear();
-                      });
-                      await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text(
-                              "Your Montage has being saved! Check it in your gallery!",
-                            ),
-                            actions: [
-                              Row(
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      final box =
-                                          context.findRenderObject()
-                                              as RenderBox?;
-                                      if (filePath.isNotEmpty) {
-                                        SharePlus.instance.share(
-                                          ShareParams(
-                                            files: [XFile(filePath)],
-                                            text:
-                                                'Check out my plant\'s growth montage!',
-                                            sharePositionOrigin: box != null
-                                                ? box.localToGlobal(
-                                                        Offset.zero,
-                                                      ) &
-                                                      box.size
-                                                : null,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: Text("Share Gif"),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Text("Save"),
-                  ),
-                  SizedBox(width: 100),
-                  ElevatedButton(
-                    onPressed: () {
+                    }
+                    final List<(String, String)> frames = List.generate(
+                      imgPathList.length,
+                      (i) => (imgPathList[i], datelist[i]),
+                    );
+                    final gifBytes = await compute(
+                      _createGifIsolate,
+                      (frames, montageDuration),
+                    );
+                    final filePath = await saveGifToDocuments(gifBytes);
+                    await GallerySaver.saveImage(filePath);
+                    setState(() {
+                      isSaving = false;
                       clear();
-                    },
-                    child: Text("Clear"),
-                  ),
-                ],
-              ),
-            ],
-            if (imgPathList.isEmpty) ...[Text("Montage will appear here")],
+                    });
+                    if (!context.mounted) return;
+                    await showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          title: const Text("Montage saved! 🌱 Check your gallery."),
+                          actions: [
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                final box =
+                                    context.findRenderObject() as RenderBox?;
+                                if (filePath.isNotEmpty) {
+                                  SharePlus.instance.share(
+                                    ShareParams(
+                                      files: [XFile(filePath)],
+                                      text: "Check out my plant's growth montage!",
+                                      sharePositionOrigin: box != null
+                                          ? box.localToGlobal(Offset.zero) & box.size
+                                          : null,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.share),
+                              label: const Text("Share Gif"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text("Save"),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton.icon(
+                  onPressed: clear,
+                  icon: const Icon(Icons.clear),
+                  label: const Text("Clear"),
+                ),
+              ],
+            ),
           ],
-        ),
+          if (imgPathList.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Text("Your montage will appear here 🎬"),
+            ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

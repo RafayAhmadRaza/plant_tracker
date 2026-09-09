@@ -18,62 +18,45 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
   Set<String> _selected = {'CM'};
 
   void updateSelected(Set<String> newSelection) {
-    setState(() {
-      _selected = newSelection;
-    });
+    setState(() => _selected = newSelection);
   }
 
-  double convertTocm(double? valueInches) {
-    return valueInches! * 2.54;
-  }
+  double convertTocm(double? valueInches) => valueInches! * 2.54;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Add Growth Record", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
-      ),
+      appBar: AppBar(title: const Text("Add Growth Record")),
       body: Form(
         key: _formkey,
-        child: Column(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            SizedBox(height: 12),
             TextField(
-              decoration: InputDecoration(labelText: "Enter Growth Height"),
+              decoration: const InputDecoration(labelText: "Enter Growth Height"),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
               ],
               onChanged: (value) {
                 final parsedValue = double.tryParse(value);
-                if (parsedValue == null) {
-                  return;
-                }
-
-                if (_selected.first == 'Inches') {
-                  final convertedValue = convertTocm(parsedValue);
-                  growthHeight = convertedValue;
-                } else {
-                  growthHeight = parsedValue;
-                }
+                if (parsedValue == null) return;
+                growthHeight = _selected.first == 'Inches'
+                    ? convertTocm(parsedValue)
+                    : parsedValue;
               },
             ),
-
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 16),
             SegmentedButton(
-              segments: <ButtonSegment<String>>[
+              segments: const <ButtonSegment<String>>[
                 ButtonSegment<String>(value: "CM", label: Text("CM")),
                 ButtonSegment<String>(value: "Inches", label: Text("IN")),
               ],
               selected: _selected,
               onSelectionChanged: updateSelected,
             ),
-
-            const SizedBox(height: 12),
-
-            ElevatedButton(
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
               onPressed: () async {
                 GrowthRecord gr = GrowthRecord(
                   plantId: widget.plantId,
@@ -81,8 +64,8 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
                   height: growthHeight ?? 0.0,
                 );
 
-                List<GrowthRecord> growthrecord = await dbService
-                    .readGrowthRecordsForPlant(widget.plantId);
+                List<GrowthRecord> growthrecord =
+                    await dbService.readGrowthRecordsForPlant(widget.plantId);
                 GrowthRecord? todayRecord;
 
                 for (final r in growthrecord) {
@@ -96,7 +79,6 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
 
                 if (todayRecord == null) {
                   await dbService.createGrowthRecord(gr);
-                  debugPrint("created entry");
                 } else {
                   final updateRecord = GrowthRecord(
                     id: todayRecord.id,
@@ -104,16 +86,12 @@ class _AddNewGrowthRecordState extends State<AddNewGrowthRecord> {
                     date: todayRecord.date,
                     height: gr.height,
                   );
-                  final rowsaffected = await dbService.updateGrowthRecord(
-                    updateRecord,
-                  );
-                  debugPrint("updated existing entry");
-                  debugPrint("updateGrowthRecord affected $rowsaffected rows");
+                  await dbService.updateGrowthRecord(updateRecord);
                 }
-
-                // Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
-              child: Icon(Icons.save),
+              icon: const Icon(Icons.save),
+              label: const Text("Save Record"),
             ),
           ],
         ),
