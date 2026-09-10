@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:plant_tracker/Models/colors_storage.dart';
 import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:plant_tracker/Service/database_service.dart';
 import 'package:plant_tracker/Models/wateringrecord.dart';
