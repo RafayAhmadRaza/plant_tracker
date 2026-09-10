@@ -80,7 +80,9 @@ class GraphPageState extends State<GraphPage> {
 
     setState(() {
       plants = loadedplants;
-      selectedPlant = loadedplants.first.id!;
+      selectedPlant = loadedplants.isNotEmpty ? loadedplants.first.id! : 0;
+
+    
     });
   }
 

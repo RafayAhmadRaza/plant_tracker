@@ -46,28 +46,24 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           }
         },
         showUnselectedLabels: false,
-        type: BottomNavigationBarType.shifting,
+        type: BottomNavigationBarType.fixed,
         currentIndex: myIndex,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: "Home",
-            backgroundColor: Colors.green,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.show_chart_sharp),
             label: "Graph",
-            backgroundColor: Colors.green,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.camera_alt_sharp),
             label: "Montage Maker",
-            backgroundColor: Colors.green,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: "Settings",
-            backgroundColor: Colors.green,
           ),
         ],
       ),

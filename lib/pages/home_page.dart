@@ -23,21 +23,22 @@ class _HomePageState extends State<HomePage> {
   Plant plant = Plant(name: "Tomato", plantedDate: DateTime.now());
   bool isLoading = false;
 
+  static const pastelBlue = Color(0xFF8FB8D9);
 
-Widget _actionIcon(IconData icon, Color color, VoidCallback onPressed) {
-  return Material(
-    color: color.withAlpha(50),
-    shape: const CircleBorder(),
-    child: InkWell(
-      customBorder: const CircleBorder(),
-      onTap: onPressed,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Icon(icon, color: color, size: 22),
+  Widget _actionIcon(IconData icon, Color color, VoidCallback onPressed) {
+    return Material(
+      color: color.withAlpha(35),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, color: color, size: 22),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   void initState() {
@@ -45,26 +46,24 @@ Widget _actionIcon(IconData icon, Color color, VoidCallback onPressed) {
     refreshPlants();
   }
 
-  void refreshPlants() async {
-    setState(() {
-      isLoading = true;
-    });
+  Future<void> refreshPlants() async {
+    setState(() => isLoading = true);
 
-    plants = await dbService.readAllPlants();
+    final loadedPlants = await dbService.readAllPlants();
+    final wrListTemp = await dbService.readAllwr();
+
     wateringStatus.clear();
-    List<Wateringrecord> wrListTemp = await dbService.readAllwr();
     final today = DateTime.now();
     for (final record in wrListTemp) {
       final wateredToday =
           record.wateredAt.year == today.year &&
           record.wateredAt.month == today.month &&
           record.wateredAt.day == today.day;
-
       wateringStatus[record.plantId] = wateredToday;
     }
 
-    debugPrint(wateringStatus.entries.toString());
     setState(() {
+      plants = loadedPlants;
       isLoading = false;
     });
   }
@@ -75,161 +74,200 @@ Widget _actionIcon(IconData icon, Color color, VoidCallback onPressed) {
   }
 
   @override
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text("Home Page", style: TextStyle(color: Colors.white)),
-      backgroundColor: Colors.green,
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute<void>(builder: (context) => const AddPlantPage()),
-        );
-        refreshPlants();
-      },
-      child: const Icon(Icons.add),
-    ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    body: ListView.builder(
-      padding: const EdgeInsets.only(bottom: 90),
-      itemCount: plants.length,
-      itemBuilder: (context, index) {
-        final plant = plants[index];
-        final watered = wateringStatus[plant.id] == true;
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final mutedColor = scheme.onSurface.withAlpha(160);
 
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          elevation: 0,
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Home Page"),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (context) => const AddPlantPage()),
+          );
+          await refreshPlants();
+        },
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: plants.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.green.shade100,
-                      child: const Icon(Icons.eco, color: Colors.green),
+                    Icon(
+                      Icons.eco_outlined,
+                      size: 72,
+                      color: scheme.primary.withAlpha(120),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            plant.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            DateFormat.yMMMd().format(plant.plantedDate),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
+                    const SizedBox(height: 16),
+                    Text(
+                      "No plants yet",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Tap the + button below to add your first plant 🌱",
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: mutedColor,
                       ),
                     ),
                   ],
                 ),
-                if (plant.notes != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    plant.notes!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-                const Divider(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _actionIcon(Icons.edit, Colors.grey.shade700, () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (context) => EditPlant(plantID: plant.id!),
-                        ),
-                      );
-                      refreshPlants();
-                    }),
-                    _actionIcon(
-                      Icons.water_drop,
-                      watered ? Colors.blue : Colors.grey,
-                      () async {
-                        List<Wateringrecord> wrlist =
-                            await dbService.readwateringRecordsForPlant(plant.id!);
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.only(bottom: 90),
+              itemCount: plants.length,
+              itemBuilder: (context, index) {
+                final plant = plants[index];
+                final watered = wateringStatus[plant.id] == true;
 
-                        if (wrlist.isEmpty ||
-                            wrlist.last.wateredAt.day != DateTime.now().day ||
-                            wrlist.last.wateredAt.month != DateTime.now().month ||
-                            wrlist.last.wateredAt.year != DateTime.now().year) {
-                          final wr = Wateringrecord(
-                            plantId: plant.id!,
-                            wateredAt: DateTime.now(),
-                          );
-                          await dbService.createwateringRecord(wr);
-                        } else {
-                          await dbService.deletewr(plant.id!, wrlist.last.id!);
-                        }
-                        refreshPlants();
-                      },
-                    ),
-                    _actionIcon(Icons.eco, Colors.green, () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              AddNewGrowthRecord(plantId: plant.id!),
-                        ),
-                      );
-                      refreshPlants();
-                    }),
-                    _actionIcon(Icons.camera_alt, Colors.grey.shade700, () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CameraPage(plantId: plant.id!),
-                        ),
-                      );
-                    }),
-                    _actionIcon(Icons.delete, Colors.red, () async {
-                      final shouldDelete = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Delete Plant?"),
-                          content: const Text(
-                            "Are you sure you want to delete this plant? (This Action is not reversible!)",
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text("Cancel"),
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  elevation: 0,
+                  color: scheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: scheme.primary.withAlpha(40),
+                              child: Icon(Icons.eco, color: scheme.primary),
                             ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text("Delete"),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    plant.name,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  Text(
+                                    DateFormat.yMMMd().format(plant.plantedDate),
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      );
-                      if (shouldDelete == true) {
-                        await dbService.deletePlant(plant.id!);
-                        refreshPlants();
-                      }
-                    }),
-                  ],
-                ),
-              ],
+                        if (plant.notes != null && plant.notes!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            plant.notes!,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ] else ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'No Notes',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              color: mutedColor,
+                            ),
+                          ),
+                        ],
+                        const Divider(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _actionIcon(Icons.edit, mutedColor, () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (context) => EditPlant(plantID: plant.id!),
+                                ),
+                              );
+                              refreshPlants();
+                            }),
+                            _actionIcon(
+                              Icons.water_drop,
+                              watered ? pastelBlue : scheme.outline,
+                              () async {
+                                List<Wateringrecord> wrlist =
+                                    await dbService.readwateringRecordsForPlant(plant.id!);
+
+                                if (wrlist.isEmpty ||
+                                    wrlist.last.wateredAt.day != DateTime.now().day ||
+                                    wrlist.last.wateredAt.month != DateTime.now().month ||
+                                    wrlist.last.wateredAt.year != DateTime.now().year) {
+                                  final wr = Wateringrecord(
+                                    plantId: plant.id!,
+                                    wateredAt: DateTime.now(),
+                                  );
+                                  await dbService.createwateringRecord(wr);
+                                } else {
+                                  await dbService.deletewr(plant.id!, wrlist.last.id!);
+                                }
+                                refreshPlants();
+                              },
+                            ),
+                            _actionIcon(Icons.eco, scheme.primary, () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddNewGrowthRecord(plantId: plant.id!),
+                                ),
+                              );
+                              refreshPlants();
+                            }),
+                            _actionIcon(Icons.camera_alt, mutedColor, () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CameraPage(plantId: plant.id!),
+                                ),
+                              );
+                            }),
+                            _actionIcon(Icons.delete, scheme.error, () async {
+                              final shouldDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Delete Plant?"),
+                                  content: const Text(
+                                    "Are you sure you want to delete this plant? (This Action is not reversible!)",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text("Delete"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (shouldDelete == true) {
+                                await dbService.deletePlant(plant.id!);
+                                refreshPlants();
+                              }
+                            }),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
+    );
+  }
 }

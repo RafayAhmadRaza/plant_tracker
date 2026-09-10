@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
+import 'package:plant_tracker/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -150,6 +151,37 @@ class _SettingsPageState extends State<SettingsPage> {
                         await setNotifications(true);
                       }
                     },
+            ),
+          ),
+          _settingsCard(
+            title: "Appearance",
+            child: ValueListenableBuilder<ThemeMode>(
+              valueListenable: themeModeNotifier,
+              builder: (context, mode, _) {
+                return SegmentedButton<ThemeMode>(
+                  segments: const <ButtonSegment<ThemeMode>>[
+                    ButtonSegment(
+                      value: ThemeMode.light,
+                      label: Text("Light"),
+                      icon: Icon(Icons.light_mode),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.dark,
+                      label: Text("Dark"),
+                      icon: Icon(Icons.dark_mode),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.system,
+                      label: Text("Auto"),
+                      icon: Icon(Icons.brightness_auto),
+                    ),
+                  ],
+                  selected: {mode},
+                  onSelectionChanged: (selection) {
+                    saveThemeMode(selection.first);
+                  },
+                );
+              },
             ),
           ),
         ],

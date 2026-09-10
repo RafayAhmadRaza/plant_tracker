@@ -26,16 +26,23 @@ class EditPlantState extends State<EditPlant> {
     if (value == null || value.trim().isEmpty) return "Enter Name Please";
     return null;
   }
-
-  Future<void> loadPlant(int plantID) async {
+Future<void> loadPlant(int plantID) async {
+  try {
     plant = await dbService.readPlant(plantID);
     nameController.text = plant!.name;
     noteController.text =
         (plant!.notes == null || plant!.notes!.isEmpty) ? "" : plant!.notes!;
+
     gr = await dbService.readGrowthRecord(plantID);
-    height = gr!.height;
-    setState(() => loaded = true);
+    height = gr?.height ?? 0.0;
+  } catch (e, st) {
+    debugPrint("Error loading plant: $e\n$st");
+  } finally {
+    if (mounted) {
+      setState(() => loaded = true);
+    }
   }
+}
 
   @override
   void initState() {
@@ -57,7 +64,7 @@ class EditPlantState extends State<EditPlant> {
           padding: const EdgeInsets.all(16),
           children: [
             TextFormField(
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: "Name", hintText: "No Notes"),
               controller: nameController,
               validator: checkNameEntered,
             ),

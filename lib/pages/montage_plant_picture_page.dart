@@ -87,7 +87,8 @@ class MontagePlantPicturePageState extends State<MontagePlantPicturePage> {
 
     setState(() {
       plants = loadedplants;
-      selectedPlant = loadedplants.first.id!;
+      selectedPlant = loadedplants.isNotEmpty ? loadedplants.first.id! : 0;
+
     });
   }
 
