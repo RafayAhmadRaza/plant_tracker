@@ -16,6 +16,7 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage> {
   File? image;
+  bool isSaving = false;
   final DatabaseService dbService = DatabaseService.instance;
   final picker = ImagePicker();
 
@@ -23,6 +24,44 @@ class _CameraPageState extends State<CameraPage> {
     final pickedFile = await picker.pickImage(source: source);
     if (pickedFile != null) {
       setState(() => image = File(pickedFile.path));
+    }
+  }
+
+  void resetImage() {
+    setState(() => image = null);
+  }
+
+  Future<void> saveImage() async {
+    if (image == null) return;
+
+    setState(() => isSaving = true);
+
+    final directory = await path_provider.getApplicationDocumentsDirectory();
+    final imgDir = Directory('${directory.path}/plant_images');
+    if (!await imgDir.exists()) await imgDir.create();
+
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final savedImage =
+        await File(image!.path).copy('${imgDir.path}/$fileName');
+
+    await dbService.createPhoto(
+      Photo(
+        plantId: widget.plantId,
+        imagePath: savedImage.path,
+        takenAt: DateTime.now(),
+      ),
+    );
+    await GallerySaver.saveImage(savedImage.path);
+
+    setState(() {
+      isSaving = false;
+      image = null;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Photo saved! 🌿")),
+      );
     }
   }
 
@@ -39,57 +78,62 @@ class _CameraPageState extends State<CameraPage> {
               child: Container(
                 height: 300,
                 width: 300,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
                 child: image != null
                     ? Image.file(image!, fit: BoxFit.cover)
-                    : const Center(
-                        child: Text("No Image Selected 🌱",
-                            style: TextStyle(color: Colors.grey)),
+                    : Center(
+                        child: Text(
+                          "No Image Selected 🌱",
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withAlpha(140),
+                          ),
+                        ),
                       ),
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text("Camera"),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    if (image == null) return;
-                    final directory =
-                        await path_provider.getApplicationDocumentsDirectory();
-                    final imgDir = Directory('${directory.path}/plant_images');
-                    if (!await imgDir.exists()) await imgDir.create();
-
-                    final fileName =
-                        '${DateTime.now().millisecondsSinceEpoch}.jpg';
-                    final savedImage =
-                        await File(image!.path).copy('${imgDir.path}/$fileName');
-
-                    await dbService.createPhoto(
-                      Photo(
-                        plantId: widget.plantId,
-                        imagePath: savedImage.path,
-                        takenAt: DateTime.now(),
-                      ),
-                    );
-                    await GallerySaver.saveImage(savedImage.path);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Photo saved! 🌿")),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.save),
-                  label: const Text("Save Image"),
-                ),
-              ],
-            ),
+            if (isSaving) ...[
+              const CircularProgressIndicator(),
+              const SizedBox(height: 12),
+              const Text("Saving photo..."),
+            ] else if (image == null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => pickImage(ImageSource.camera),
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text("Take Photo"),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => pickImage(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text("Choose from Gallery"),
+                  ),
+                ],
+              ),
+            ] else ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: resetImage,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Retake / Repick"),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: saveImage,
+                    icon: const Icon(Icons.save),
+                    label: const Text("Save Image"),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

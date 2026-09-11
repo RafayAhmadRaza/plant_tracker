@@ -15,7 +15,6 @@ class NotificationService {
 
     tz.initializeTimeZones();
     final currentTimeZone = await FlutterTimezone.getLocalTimezone();
-
     tz.setLocalLocation(tz.getLocation(currentTimeZone.identifier));
 
     const AndroidInitializationSettings androidSettings =
@@ -23,22 +22,16 @@ class NotificationService {
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
     );
+
     await _notificationsPlugin.initialize(settings: initSettings);
-    const AndroidNotificationDetails details = AndroidNotificationDetails(
-      'default_channel',
-      "Default Channel",
-      channelDescription: 'This is default notification channel',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-    );
+
     _isInitialized = true;
   }
 
   Future<void> showNotification({
     int id = 0,
-    String title = 'water your plants!',
-    String body = 'Please Remember to water your plants!',
+    String title = 'Water your plants!',
+    String body = 'Please remember to water your plants!',
   }) async {
     const AndroidNotificationDetails details = AndroidNotificationDetails(
       'default_channel',
@@ -49,11 +42,11 @@ class NotificationService {
       showWhen: true,
     );
 
-    return _notificationsPlugin.show(
+    await _notificationsPlugin.show(
       id: id,
-      body: body,
       title: title,
-      notificationDetails: NotificationDetails(android: details),
+      body: body,
+      notificationDetails: const NotificationDetails(android: details),
     );
   }
 
@@ -83,22 +76,27 @@ class NotificationService {
       minute,
     );
 
+    // If today's time already passed, schedule for tomorrow instead of the past
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
     const AndroidNotificationDetails details = AndroidNotificationDetails(
       'default_channel',
-      "Default Channel",
-      channelDescription: 'This is default notification channel',
+      'Default Channel',
+      channelDescription: 'This is the default notification channel',
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
     );
+
     await _notificationsPlugin.zonedSchedule(
       id: id,
       title: title,
       body: body,
       scheduledDate: scheduledDate,
-      notificationDetails: NotificationDetails(android: details),
+      notificationDetails: const NotificationDetails(android: details),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
