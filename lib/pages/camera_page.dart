@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:plant_tracker/Service/database_service.dart';
 import 'package:plant_tracker/Models/photo_model.dart';
+import 'package:plant_tracker/Models/plant_model.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:gallery_saver_plus/gallery_saver.dart';
 
@@ -17,8 +18,22 @@ class CameraPage extends StatefulWidget {
 class _CameraPageState extends State<CameraPage> {
   File? image;
   bool isSaving = false;
+  Plant? plant;
   final DatabaseService dbService = DatabaseService.instance;
   final picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    loadPlant();
+  }
+
+  Future<void> loadPlant() async {
+    final loadedPlant = await dbService.readPlant(widget.plantId);
+    if (mounted) {
+      setState(() => plant = loadedPlant);
+    }
+  }
 
   Future<void> pickImage(ImageSource source) async {
     final pickedFile = await picker.pickImage(source: source);
@@ -60,83 +75,117 @@ class _CameraPageState extends State<CameraPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Photo saved! 🌿")),
+        const SnackBar(content: Text("Photo saved")),
       );
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("📸 Take a Picture")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Container(
-                height: 300,
-                width: 300,
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                child: image != null
-                    ? Image.file(image!, fit: BoxFit.cover)
-                    : Center(
-                        child: Text(
-                          "No Image Selected 🌱",
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withAlpha(140),
+Widget build(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+
+  return Scaffold(
+    appBar: AppBar(title: const Text("Take a Picture")),
+    body: SingleChildScrollView(
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                plant != null ? plant!.name : "Loading...",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Photo for this plant",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface.withAlpha(140),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    height: 300,
+                    width: 300,
+                    color: scheme.surfaceContainerLow,
+                    child: image != null
+                        ? Image.file(image!, fit: BoxFit.cover)
+                        : Center(
+                            child: Text(
+                              "No Image Selected",
+                              style: TextStyle(
+                                color: scheme.onSurface.withAlpha(140),
+                              ),
+                            ),
                           ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (isSaving) ...[
+                const CircularProgressIndicator(),
+                const SizedBox(height: 12),
+                const Text("Saving photo..."),
+              ] else if (image == null) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => pickImage(ImageSource.camera),
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text("Take Photo"),
                         ),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (isSaving) ...[
-              const CircularProgressIndicator(),
-              const SizedBox(height: 12),
-              const Text("Saving photo..."),
-            ] else if (image == null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => pickImage(ImageSource.camera),
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text("Take Photo"),
+                        OutlinedButton.icon(
+                          onPressed: () => pickImage(ImageSource.gallery),
+                          icon: const Icon(Icons.photo_library),
+                          label: const Text("Choose from Gallery"),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  OutlinedButton.icon(
-                    onPressed: () => pickImage(ImageSource.gallery),
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text("Choose from Gallery"),
+                ),
+              ] else ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: resetImage,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text("Retake / Repick"),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: saveImage,
+                          icon: const Icon(Icons.save),
+                          label: const Text("Save Image"),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: resetImage,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text("Retake / Repick"),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: saveImage,
-                    icon: const Icon(Icons.save),
-                    label: const Text("Save Image"),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

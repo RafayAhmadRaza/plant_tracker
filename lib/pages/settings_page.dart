@@ -152,38 +152,28 @@ class _SettingsPageState extends State<SettingsPage> {
                       }
                     },
             ),
-          ),
-          _settingsCard(
-            title: "Appearance",
-            child: ValueListenableBuilder<ThemeMode>(
-              valueListenable: themeModeNotifier,
-              builder: (context, mode, _) {
-                return SegmentedButton<ThemeMode>(
-                  segments: const <ButtonSegment<ThemeMode>>[
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      label: Text("Light"),
-                      icon: Icon(Icons.light_mode),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      label: Text("Dark"),
-                      icon: Icon(Icons.dark_mode),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      label: Text("Auto"),
-                      icon: Icon(Icons.brightness_auto),
-                    ),
-                  ],
-                  selected: {mode},
-                  onSelectionChanged: (selection) {
-                    saveThemeMode(selection.first);
-                  },
-                );
-              },
-            ),
-          ),
+          ),_settingsCard(
+  title: "Appearance",
+  child: SizedBox(
+    width: double.infinity,
+    child: ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, mode, _) {
+        return SegmentedButton<ThemeMode>(
+          segments: const <ButtonSegment<ThemeMode>>[
+            ButtonSegment(value: ThemeMode.light, label: Text("Light")),
+            ButtonSegment(value: ThemeMode.dark, label: Text("Dark")),
+            ButtonSegment(value: ThemeMode.system, label: Text("Auto")),
+          ],
+          selected: {mode},
+          onSelectionChanged: (selection) {
+            saveThemeMode(selection.first);
+          },
+        );
+      },
+    ),
+  ),
+),
         ],
       ),
     );
