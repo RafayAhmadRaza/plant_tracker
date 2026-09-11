@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -13,19 +14,25 @@ class NotificationService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    tz.initializeTimeZones();
-    final currentTimeZone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(currentTimeZone.identifier));
+    try {
+      tz.initializeTimeZones();
+      final currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(currentTimeZone.identifier));
 
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings = InitializationSettings(
-      android: androidSettings,
-    );
+      const AndroidInitializationSettings androidSettings =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const InitializationSettings initSettings = InitializationSettings(
+        android: androidSettings,
+      );
 
-    await _notificationsPlugin.initialize(settings: initSettings);
+      await _notificationsPlugin.initialize(settings: initSettings);
 
-    _isInitialized = true;
+      _isInitialized = true;
+    } catch (e, st) {
+      // Don't let notification setup failures block app startup.
+      debugPrint('NotificationService.initialize failed: $e');
+      debugPrint('$st');
+    }
   }
 
   Future<void> showNotification({
@@ -33,6 +40,7 @@ class NotificationService {
     String title = 'Water your plants!',
     String body = 'Please remember to water your plants!',
   }) async {
+    if (!_isInitialized) return;
     const AndroidNotificationDetails details = AndroidNotificationDetails(
       'default_channel',
       'Default Channel',
@@ -65,6 +73,7 @@ class NotificationService {
     required int hour,
     required int minute,
   }) async {
+    if (!_isInitialized) return;
     final now = tz.TZDateTime.now(tz.local);
 
     var scheduledDate = tz.TZDateTime(
@@ -76,7 +85,6 @@ class NotificationService {
       minute,
     );
 
-    // If today's time already passed, schedule for tomorrow instead of the past
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
