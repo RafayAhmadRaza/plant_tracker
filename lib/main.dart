@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:plant_tracker/Service/adservice.dart';
 import 'package:plant_tracker/Service/database_service.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,7 @@ void main() async {
   await DatabaseService.instance.initDB("PlantsDatabase.db");
   await NotificationService().initialize();
   await loadSavedThemeMode();
+  await AdService.instance.init();
   runApp(const PlantTrackerRoot());
 }
 

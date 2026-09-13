@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:plant_tracker/Service/adservice.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:plant_tracker/pages/settings_page.dart';
 import 'package:plant_tracker/pages/graph_page.dart';
 import 'package:plant_tracker/pages/home_page.dart';
@@ -28,7 +30,18 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: myIndex, children: widgetList),
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(index: myIndex, children: widgetList),
+          ),
+          if (!AdService.instance.adsRemoved)
+            SizedBox(
+              height: 50,
+              child: AdWidget(ad: AdService.instance.createBannerAd()),
+            ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) {
           setState(() {
