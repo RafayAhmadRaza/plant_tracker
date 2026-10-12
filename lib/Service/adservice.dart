@@ -1,5 +1,5 @@
-// lib/Service/ad_service.dart
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,18 +7,19 @@ class AdService {
   AdService._();
   static final AdService instance = AdService._();
 
-  // TEST IDs — replace with real ones before publishing
   static const String bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
   static const String interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
 
-  bool adsRemoved = false;
+  final ValueNotifier<bool> adsRemovedNotifier = ValueNotifier(false);
+  bool get adsRemoved => adsRemovedNotifier.value;
+
   InterstitialAd? _interstitialAd;
   Timer? _interstitialTimer;
 
   Future<void> init() async {
     await MobileAds.instance.initialize();
     final sp = await SharedPreferences.getInstance();
-    adsRemoved = sp.getBool('adsRemoved') ?? false;
+    adsRemovedNotifier.value = sp.getBool('adsRemoved') ?? false;
 
     if (!adsRemoved) {
       _loadInterstitial();
@@ -27,7 +28,7 @@ class AdService {
   }
 
   Future<void> setAdsRemoved(bool removed) async {
-    adsRemoved = removed;
+    adsRemovedNotifier.value = removed;
     final sp = await SharedPreferences.getInstance();
     await sp.setBool('adsRemoved', removed);
 
@@ -67,7 +68,6 @@ class AdService {
 
   void _startInterstitialTimer() {
     _interstitialTimer?.cancel();
-    // Fires every 90 seconds — adjust to taste (60-120s = "1-2 min")
     _interstitialTimer = Timer.periodic(const Duration(seconds: 90), (_) {
       _showInterstitialIfReady();
     });
@@ -81,7 +81,7 @@ class AdService {
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _interstitialAd = null;
-        _loadInterstitial(); // preload the next one
+        _loadInterstitial();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();

@@ -1,3 +1,4 @@
+import 'package:plant_tracker/Service/iap_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:plant_tracker/Service/adservice.dart';
@@ -32,12 +33,14 @@ Future<void> saveThemeMode(ThemeMode mode) async {
   themeModeNotifier.value = mode;
 }
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.instance.initDB("PlantsDatabase.db");
   await NotificationService().initialize();
   await loadSavedThemeMode();
   await AdService.instance.init();
+  await IapService.instance.init();
   runApp(const PlantTrackerRoot());
 }
 

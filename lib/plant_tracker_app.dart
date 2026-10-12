@@ -35,11 +35,16 @@ class _PlantTrackerAppState extends State<PlantTrackerApp> {
           Expanded(
             child: IndexedStack(index: myIndex, children: widgetList),
           ),
-          if (!AdService.instance.adsRemoved)
-            SizedBox(
-              height: 50,
-              child: AdWidget(ad: AdService.instance.createBannerAd()),
-            ),
+          ValueListenableBuilder<bool>(
+            valueListenable: AdService.instance.adsRemovedNotifier,
+            builder: (context, adsRemoved, _) {
+              if (adsRemoved) return const SizedBox.shrink();
+              return SizedBox(
+                height: 50,
+                child: AdWidget(ad: AdService.instance.createBannerAd()),
+              );
+            },
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

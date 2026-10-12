@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
 import 'package:plant_tracker/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:plant_tracker/Service/adservice.dart';
+import 'package:plant_tracker/Service/iap_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -103,6 +105,60 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+Widget _buildRemoveAdsCard() {
+  return ValueListenableBuilder<bool>(
+    valueListenable: AdService.instance.adsRemovedNotifier,
+    builder: (context, adsRemoved, _) {
+      if (adsRemoved) {
+        return _settingsCard(
+          title: "Ads",
+          child: Row(
+            children: [
+              Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              const Text("Ads removed — thank you!"),
+            ],
+          ),
+        );
+      }
+
+      return _settingsCard(
+        title: "Remove Ads",
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Enjoy Plant Tracker without banner or interstitial ads. One-time purchase.",
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: IapService.instance.removeAdsProduct == null
+                      ? null
+                      : () => IapService.instance.buyRemoveAds(),
+                  child: Text(
+                    IapService.instance.removeAdsProduct != null
+                        ? "Buy — ${IapService.instance.removeAdsProduct!.price}"
+                        : "Loading...",
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => IapService.instance.restorePurchases(),
+                  child: const Text("Restore Purchases"),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,28 +208,30 @@ class _SettingsPageState extends State<SettingsPage> {
                       }
                     },
             ),
-          ),_settingsCard(
-  title: "Appearance",
-  child: SizedBox(
-    width: double.infinity,
-    child: ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeModeNotifier,
-      builder: (context, mode, _) {
-        return SegmentedButton<ThemeMode>(
-          segments: const <ButtonSegment<ThemeMode>>[
-            ButtonSegment(value: ThemeMode.light, label: Text("Light")),
-            ButtonSegment(value: ThemeMode.dark, label: Text("Dark")),
-            ButtonSegment(value: ThemeMode.system, label: Text("Auto")),
-          ],
-          selected: {mode},
-          onSelectionChanged: (selection) {
-            saveThemeMode(selection.first);
-          },
-        );
-      },
-    ),
-  ),
-),
+          ),
+          _settingsCard(
+            title: "Appearance",
+            child: SizedBox(
+              width: double.infinity,
+              child: ValueListenableBuilder<ThemeMode>(
+                valueListenable: themeModeNotifier,
+                builder: (context, mode, _) {
+                  return SegmentedButton<ThemeMode>(
+                    segments: const <ButtonSegment<ThemeMode>>[
+                      ButtonSegment(value: ThemeMode.light, label: Text("Light")),
+                      ButtonSegment(value: ThemeMode.dark, label: Text("Dark")),
+                      ButtonSegment(value: ThemeMode.system, label: Text("Auto")),
+                    ],
+                    selected: {mode},
+                    onSelectionChanged: (selection) {
+                      saveThemeMode(selection.first);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+          _buildRemoveAdsCard(),
         ],
       ),
     );
