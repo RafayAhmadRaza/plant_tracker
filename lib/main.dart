@@ -39,8 +39,8 @@ void main() async {
   await DatabaseService.instance.initDB("PlantsDatabase.db");
   await NotificationService().initialize();
   await loadSavedThemeMode();
-  await AdService.instance.init();
-  await IapService.instance.init();
+  // await AdService.instance.init();
+  // await IapService.instance.init();
   runApp(const PlantTrackerRoot());
 }
 

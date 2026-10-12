@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:plant_tracker/Service/notification_service.dart';
 import 'package:plant_tracker/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:plant_tracker/Service/adservice.dart';
-import 'package:plant_tracker/Service/iap_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -44,6 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void updatedNotifications(Set<bool> a) {
     setState(() => notificationsEnabled = a);
     setNotifications(a.first);
+
     if (a.first == false) {
       NotificationService().cancelAllNotifications();
     } else {
@@ -57,7 +56,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void loadNotifications() {
-    setState(() => notificationsEnabled = {sp!.getBool("notificationEnabled") ?? true});
+    setState(() {
+      notificationsEnabled = {
+        sp!.getBool("notificationEnabled") ?? true,
+      };
+    });
   }
 
   void updateSelected(Set<String> newSelection) {
@@ -70,11 +73,16 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void loadUnit() {
-    setState(() => _selected = {sp!.getString("heightUnit") ?? "CM"});
+    setState(() {
+      _selected = {sp!.getString("heightUnit") ?? "CM"};
+    });
   }
 
-  void getSharedPreferences() async {
+  Future<void> getSharedPreferences() async {
     sp = await SharedPreferences.getInstance();
+
+    if (!mounted) return;
+
     loadUnit();
     loadHour();
     loadMinute();
@@ -87,7 +95,10 @@ class _SettingsPageState extends State<SettingsPage> {
     getSharedPreferences();
   }
 
-  Widget _settingsCard({required String title, required Widget child}) {
+  Widget _settingsCard({
+    required String title,
+    required Widget child,
+  }) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -96,7 +107,10 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             child,
           ],
@@ -104,60 +118,6 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-
-Widget _buildRemoveAdsCard() {
-  return ValueListenableBuilder<bool>(
-    valueListenable: AdService.instance.adsRemovedNotifier,
-    builder: (context, adsRemoved, _) {
-      if (adsRemoved) {
-        return _settingsCard(
-          title: "Ads",
-          child: Row(
-            children: [
-              Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 8),
-              const Text("Ads removed — thank you!"),
-            ],
-          ),
-        );
-      }
-
-      return _settingsCard(
-        title: "Remove Ads",
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Enjoy Plant Tracker without banner or interstitial ads. One-time purchase.",
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: IapService.instance.removeAdsProduct == null
-                      ? null
-                      : () => IapService.instance.buyRemoveAds(),
-                  child: Text(
-                    IapService.instance.removeAdsProduct != null
-                        ? "Buy — ${IapService.instance.removeAdsProduct!.price}"
-                        : "Loading...",
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => IapService.instance.restorePurchases(),
-                  child: const Text("Restore Purchases"),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
 
   @override
   Widget build(BuildContext context) {
@@ -168,10 +128,16 @@ Widget _buildRemoveAdsCard() {
         children: [
           _settingsCard(
             title: "Measurement Unit",
-            child: SegmentedButton(
+            child: SegmentedButton<String>(
               segments: const <ButtonSegment<String>>[
-                ButtonSegment<String>(value: "CM", label: Text("CM")),
-                ButtonSegment<String>(value: "Inches", label: Text("IN")),
+                ButtonSegment<String>(
+                  value: "CM",
+                  label: Text("CM"),
+                ),
+                ButtonSegment<String>(
+                  value: "Inches",
+                  label: Text("IN"),
+                ),
               ],
               selected: _selected,
               onSelectionChanged: updateSelected,
@@ -179,10 +145,16 @@ Widget _buildRemoveAdsCard() {
           ),
           _settingsCard(
             title: "Notifications",
-            child: SegmentedButton(
+            child: SegmentedButton<bool>(
               segments: const <ButtonSegment<bool>>[
-                ButtonSegment<bool>(value: true, label: Text("Yes")),
-                ButtonSegment<bool>(value: false, label: Text("No")),
+                ButtonSegment<bool>(
+                  value: true,
+                  label: Text("Yes"),
+                ),
+                ButtonSegment<bool>(
+                  value: false,
+                  label: Text("No"),
+                ),
               ],
               selected: notificationsEnabled,
               onSelectionChanged: updatedNotifications,
@@ -192,15 +164,21 @@ Widget _buildRemoveAdsCard() {
             title: "Reminder Time",
             child: ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(TimeOfDay(hour: hour, minute: min).format(context)),
+              title: Text(
+                TimeOfDay(hour: hour, minute: min).format(context),
+              ),
               trailing: const Icon(Icons.access_time),
               onTap: notificationsEnabled.first == false
                   ? null
                   : () async {
                       final pickedTime = await showTimePicker(
                         context: context,
-                        initialTime: TimeOfDay(hour: hour, minute: min),
+                        initialTime: TimeOfDay(
+                          hour: hour,
+                          minute: min,
+                        ),
                       );
+
                       if (pickedTime != null) {
                         await setHour(pickedTime.hour);
                         await setMinute(pickedTime.minute);
@@ -218,9 +196,18 @@ Widget _buildRemoveAdsCard() {
                 builder: (context, mode, _) {
                   return SegmentedButton<ThemeMode>(
                     segments: const <ButtonSegment<ThemeMode>>[
-                      ButtonSegment(value: ThemeMode.light, label: Text("Light")),
-                      ButtonSegment(value: ThemeMode.dark, label: Text("Dark")),
-                      ButtonSegment(value: ThemeMode.system, label: Text("Auto")),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text("Light"),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text("Dark"),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text("Auto"),
+                      ),
                     ],
                     selected: {mode},
                     onSelectionChanged: (selection) {
@@ -231,7 +218,6 @@ Widget _buildRemoveAdsCard() {
               ),
             ),
           ),
-          _buildRemoveAdsCard(),
         ],
       ),
     );
