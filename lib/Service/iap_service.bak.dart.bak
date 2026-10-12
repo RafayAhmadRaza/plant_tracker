@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:plant_tracker/Service/adservice.dart';
+import 'package:plant_tracker/Service/adservice';
 
 class IapService {
   IapService._();
